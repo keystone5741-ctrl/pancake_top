@@ -1,0 +1,10 @@
+{
+  "name": "pancake-drop",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "proto": "pnpm --filter physics-prototype dev",
+    "proto:build": "pnpm --filter physics-prototype build",
+    "bench": "pnpm --filter physics-prototype bench"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-09-17T07:37:42.245Z",
+  "results": [
+    {
+      "target": 1000,
+      "spawned": 1000,
+      "phase": "collapsed",
+      "quality": "standard",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.04,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.15,
+        "spawnTilt": 0.08,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.15,
+        "drape": 0.6,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 20260917,
+        "maxStepsPerBatch": 3000
+      },
+      "towerHeightM": 2.1282077875733374,
+      "states": {
+        "active": 0,
+        "surface": 60,
+        "frozen": 940,
+        "leaks": 0
+      },
+      "fps": 1.7755681818175946,
+      "frameMsAvg": 464.0857142857143,
+      "physMsPerFrameAvg": 5.2267857142907035,
+      "physMsPerStepAvg": 1.3389752973480302,
+      "physSteps": 1093,
+      "drawCalls": 3,
+      "triangles": 192064,
+      "drawGroups": 1,
+      "jsHeapMB": 9.55196475982666,
+      "loadMs": 1279.5,
+      "devicePixelRatio": 1,
+      "viewport": [
+        1280,
+        800
+      ],
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "release": {
+        "steps": 175,
+        "ms": 24964.099999999627
+      },
+      "wallMs": 131086
+    }
+  ]
+}

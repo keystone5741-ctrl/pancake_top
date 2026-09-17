@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PANCAKE DROP — Phase 0 Physics Prototype</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; height: 100%; background: #0d0f14; color: #e8e6e1; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; }
+      #panel { position: fixed; top: 12px; left: 12px; width: 300px; max-height: calc(100% - 24px); overflow: auto; padding: 12px; background: rgba(13,15,20,.82); border: 1px solid #2a2e3a; border-radius: 8px; backdrop-filter: blur(6px); }
+      #panel h1 { font-size: 13px; margin: 0 0 8px; letter-spacing: .08em; color: #f6c453; }
+      #panel h2 { font-size: 11px; margin: 12px 0 4px; color: #8a8f9c; letter-spacing: .08em; }
+      .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 3px 0; }
+      .row label { color: #aab0bd; }
+      input[type=number], select { width: 110px; background: #151821; color: #e8e6e1; border: 1px solid #2a2e3a; border-radius: 4px; padding: 3px 6px; font: inherit; }
+      input[type=checkbox] { accent-color: #f6c453; }
+      button { background: #f6c453; color: #1a1400; border: 0; border-radius: 6px; padding: 6px 10px; font: inherit; font-weight: 700; cursor: pointer; }
+      button.secondary { background: #2a2e3a; color: #e8e6e1; }
+      button:disabled { opacity: .4; cursor: default; }
+      .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      #stats { white-space: pre; color: #cfd3dc; }
+      #stats b { color: #f6c453; }
+      #big { position: fixed; right: 16px; top: 12px; text-align: right; pointer-events: none; }
+      #big .n { font-size: 34px; font-weight: 700; color: #fff; }
+      #big .h { font-size: 16px; color: #f6c453; }
+      #big .s { font-size: 11px; color: #8a8f9c; }
+      @media (max-width: 640px) { #panel { width: calc(100% - 24px); max-height: 45%; } #big { display: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="big"><div class="n" id="bigCount">0 🥞</div><div class="h" id="bigHeight">0.00 m</div><div class="s" id="bigState"></div></div>
+    <div id="panel">
+      <h1>PANCAKE DROP · PHASE 0</h1>
+      <h2>RUN</h2>
+      <div class="row"><label>Target pancakes</label><select id="target"><option>100</option><option selected>1000</option><option>10000</option><option>100000</option><option>500000</option></select></div>
+      <div class="row"><label>Batch (per Drop)</label><input id="batch" type="number" value="500" min="1" /></div>
+      <div class="row"><label>Spawn / step</label><input id="spawnPerStep" type="number" value="2" min="1" /></div>
+      <div class="row"><label>Physics steps / frame</label><input id="stepsPerFrame" type="number" value="2" min="1" max="20" /></div>
+      <h2>WORLD RULES</h2>
+      <div class="row"><label>Spawn spread (u)</label><input id="spread" type="number" value="0.15" step="0.05" min="0" /></div>
+      <div class="row"><label>Spawn mode</label><select id="spawnMode"><option value="top" selected>top (follow)</option><option value="axis">axis</option></select></div>
+      <div class="row"><label>Syrup (stick on contact)</label><input id="stick" type="checkbox" checked /></div>
+      <div class="row"><label>Drape (0 rigid – 1 flat)</label><input id="drape" type="number" value="0.6" step="0.1" min="0" max="1" /></div>
+      <div class="row"><label>Freeze buried</label><input id="freeze" type="checkbox" checked /></div>
+      <div class="row"><label>Release kick (u/s)</label><input id="kick" type="number" value="5" step="1" min="0" /></div>
+      <h2>RENDER</h2>
+      <div class="row"><label>Quality</label><select id="quality"><option value="ultra">Ultra</option><option value="standard" selected>Standard</option><option value="performance">Performance</option></select></div>
+      <div class="row"><label>Color by state</label><input id="colorState" type="checkbox" checked /></div>
+      <div class="row"><label>Camera follows top</label><input id="follow" type="checkbox" checked /></div>
+      <div class="buttons">
+        <button id="start">START</button>
+        <button id="pause" class="secondary" disabled>PAUSE</button>
+        <button id="release" class="secondary" disabled>RELEASE (COLLAPSE)</button>
+        <button id="reset" class="secondary">RESET</button>
+        <button id="export" class="secondary">EXPORT JSON</button>
+      </div>
+      <h2>STATS</h2>
+      <div id="stats">—</div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
