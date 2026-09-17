@@ -1,0 +1,61 @@
+{
+  "target": 100000,
+  "preset": "natural",
+  "runs": 5,
+  "cutoffSec": 60,
+  "p50": 44.18685277099999,
+  "p95": 44.357758353000015,
+  "min": 43.81775059500002,
+  "max": 44.733523416,
+  "failures": 0,
+  "peakRssMB": 218.96875,
+  "details": [
+    {
+      "run": 0,
+      "wallSec": 44.733523416,
+      "ok": true,
+      "err": "",
+      "steps": 91658,
+      "leaks": 0,
+      "withinCutoff": true
+    },
+    {
+      "run": 1,
+      "wallSec": 44.18685277099999,
+      "ok": true,
+      "err": "",
+      "steps": 91655,
+      "leaks": 0,
+      "withinCutoff": true
+    },
+    {
+      "run": 2,
+      "wallSec": 43.87568207000001,
+      "ok": true,
+      "err": "",
+      "steps": 91651,
+      "leaks": 0,
+      "withinCutoff": true
+    },
+    {
+      "run": 3,
+      "wallSec": 43.81775059500002,
+      "ok": true,
+      "err": "",
+      "steps": 91649,
+      "leaks": 0,
+      "withinCutoff": true
+    },
+    {
+      "run": 4,
+      "wallSec": 44.357758353000015,
+      "ok": true,
+      "err": "",
+      "steps": 91650,
+      "leaks": 0,
+      "withinCutoff": true
+    }
+  ],
+  "node": "v22.22.2",
+  "generatedAt": "2026-09-17T07:52:24.479Z"
+}

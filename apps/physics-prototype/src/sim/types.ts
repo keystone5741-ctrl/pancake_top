@@ -9,6 +9,8 @@ export interface SimConfig {
   thickness: number;
   /** 크기 편차 (±비율) */
   sizeJitter: number;
+  /** 두께 편차 (±비율) */
+  thicknessJitter: number;
   gravity: number;
   friction: number;
   restitution: number;
@@ -23,6 +25,8 @@ export interface SimConfig {
   spawnSpread: number;
   /** 스폰 시 기울기 (rad) */
   spawnTilt: number;
+  /** 'top' 스폰 모드에서 탑 축 쪽으로 되돌리는 비율 (0 = 순수 random walk, 1 = 항상 축 위) */
+  spawnRecenter: number;
   /** 탑 최고점 위 스폰 여유 높이 (units) */
   spawnClearance: number;
   /** 정착 판정: 선속도/각속도 임계값과 유지 프레임 수 */
@@ -49,6 +53,8 @@ export interface SimConfig {
    * 0 = 강체 그대로(기울기 누적), 1 = 항상 완전히 평평. 0.5 = 받침 기울기의 절반만 물려받음.
    */
   drape: number;
+  /** 정착 시 추가하는 무작위 기울기 (rad). 시각적 변화용. */
+  settleTiltJitter: number;
   /** 솔버 반복 횟수 (Rapier 기본 4) */
   solverIterations: number;
   /** 접촉 소프트니스 고유진동수 (Hz, Rapier 기본 30). 낮으면 중력에 의해 파고든다. */
@@ -70,7 +76,8 @@ export const DEFAULT_CONFIG: SimConfig = {
   unitCm: 10,
   diameter: 1.0,
   thickness: 0.1,
-  sizeJitter: 0.04,
+  sizeJitter: 0.05,
+  thicknessJitter: 0.1,
   gravity: -98.1,
   friction: 0.9,
   restitution: 0.0,
@@ -80,8 +87,9 @@ export const DEFAULT_CONFIG: SimConfig = {
   density: 1.0,
   batchSize: 500,
   spawnPerStep: 2,
-  spawnSpread: 0.15,
-  spawnTilt: 0.08,
+  spawnSpread: 0.2,
+  spawnTilt: 0.15,
+  spawnRecenter: 0.1,
   spawnClearance: 3,
   settleLinVel: 0.2,
   settleAngVel: 0.6,
@@ -92,8 +100,9 @@ export const DEFAULT_CONFIG: SimConfig = {
   spawnMode: "top",
   stickOnContact: true,
   stickMaxSpeed: 1e9,
-  stickMaxPenetration: 0.15,
+  stickMaxPenetration: 0.05,
   drape: 0.6,
+  settleTiltJitter: 0.06,
   solverIterations: 4,
   contactHz: 30,
   releaseKick: 5.0,
@@ -122,3 +131,38 @@ export interface StepStats {
   topY: number;
   leaks: number;
 }
+
+/**
+ * Phase 0.5 Drape/변화 프리셋. Natural 이 DEFAULT_CONFIG 와 같다.
+ * 동일 seed, 동일 개수로 비교한다 (benchmarks/phase0.5-*.md).
+ */
+export const PRESETS: Record<"stable" | "natural" | "loose", Partial<SimConfig>> = {
+  stable: {
+    drape: 0.9,
+    settleTiltJitter: 0.02,
+    spawnSpread: 0.1,
+    spawnTilt: 0.05,
+    spawnRecenter: 0.3,
+    sizeJitter: 0.03,
+    thicknessJitter: 0.05,
+  },
+  natural: {
+    drape: 0.6,
+    settleTiltJitter: 0.06,
+    spawnSpread: 0.2,
+    spawnTilt: 0.15,
+    spawnRecenter: 0.1,
+    sizeJitter: 0.05,
+    thicknessJitter: 0.1,
+  },
+  loose: {
+    drape: 0.35,
+    settleTiltJitter: 0.12,
+    spawnSpread: 0.35,
+    spawnTilt: 0.3,
+    spawnRecenter: 0.05,
+    sizeJitter: 0.06,
+    thicknessJitter: 0.12,
+  },
+};
+export type PresetName = keyof typeof PRESETS;

@@ -12,6 +12,7 @@
 | [`docs/COLLAPSE_DAY.md`](docs/COLLAPSE_DAY.md) | 월간 붕괴의 날(Collapse Day) 설계 초안 — 기존 원칙과의 충돌 정리, v0/v1 일정, 물리·Replay, 데이터, PO 결정 항목 |
 | [`docs/IDEA_TERRITORY_DROP.md`](docs/IDEA_TERRITORY_DROP.md) | 아이디어: 국가 영토 위로 떨어지는 팬케이크 (단일 탑과의 비교, 스케일 조절, PO 결정 항목) |
 | [`docs/benchmarks/phase0-2026-09-17.md`](docs/benchmarks/phase0-2026-09-17.md) | Phase 0 물리 프로토타입 측정 결과와 결론 |
+| [`docs/benchmarks/phase0.5-2026-09-17.md`](docs/benchmarks/phase0.5-2026-09-17.md) | Phase 0.5 물리·시각 검증: 품질 계측, 프리셋 비교, Drop 스케줄링, 실제 기기 절차 |
 
 ## 코드
 
@@ -23,11 +24,12 @@ apps/physics-prototype/   Phase 0 — 물리 프로토타입 (Three.js + Rapier)
 pnpm install
 pnpm proto        # 브라우저 프로토타입 (http://localhost:5173)
 pnpm bench        # Node 헤드리스 물리 벤치마크
+pnpm --filter physics-prototype test   # 단위 테스트
 ```
 
 ## 현재 상태
 
-**Phase 0 — Physics Prototype** 구현 및 1차 측정 완료 (플랜 §44). 다음은 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
+**Phase 0 — Physics Prototype** 과 **Phase 0.5 — Physics & Visual Validation** 완료 (플랜 §44). 다음은 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
 
 ## 개발 역할 (§46)
 

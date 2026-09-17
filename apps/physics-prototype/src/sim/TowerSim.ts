@@ -1,5 +1,7 @@
 import type RAPIER_NS from "@dimforge/rapier3d-compat";
 import { createRng } from "./rng";
+import { computeStackingMetrics, type StackingMetrics } from "./metrics";
+import type { TowerData } from "./towerFile";
 import {
   DEFAULT_CONFIG,
   STATE_ACTIVE,
@@ -39,6 +41,8 @@ export class TowerSim {
   readonly qz: Float32Array;
   readonly qw: Float32Array;
   readonly scale: Float32Array;
+  /** 두께 편차 (배율). 렌더링은 (scale, tscale, scale) 비균등 스케일. */
+  readonly tscale: Float32Array;
   readonly state: Uint8Array;
 
   /** 이번 step 에 transform/state 가 바뀐 id 목록 (렌더러 동기화용) */
@@ -80,6 +84,7 @@ export class TowerSim {
     this.qz = new Float32Array(capacity);
     this.qw = new Float32Array(capacity);
     this.scale = new Float32Array(capacity);
+    this.tscale = new Float32Array(capacity);
     this.state = new Uint8Array(capacity);
 
     this.world = new R.World({ x: 0, y: this.cfg.gravity, z: 0 });
@@ -102,6 +107,14 @@ export class TowerSim {
 
   get capacity(): number {
     return this.px.length;
+  }
+  /** id 팬케이크의 실제 반두께 (두께 편차 반영) */
+  halfTh(id: number): number {
+    return (this.cfg.thickness * this.tscale[id]) / 2;
+  }
+  /** id 팬케이크의 실제 반지름 (크기 편차 반영) */
+  radius(id: number): number {
+    return (this.cfg.diameter * this.scale[id]) / 2;
   }
   get spawned(): number {
     return this.spawnedCount;
@@ -203,7 +216,7 @@ export class TowerSim {
       }
       const stick = stickAllowed && this.touchesFixed(body);
 
-      const aboveGround = t.y > (this.cfg.thickness * this.scale[id]) / 2 - this.cfg.thickness * this.cfg.stickMaxPenetration;
+      const aboveGround = t.y > this.halfTh(id) - this.cfg.thickness * this.cfg.stickMaxPenetration;
       if (aboveGround && (stick || body.isSleeping() || c >= this.cfg.settleFrames || forceSettle)) {
         if (this.cfg.stickOnContact && this.cfg.drape > 0) {
           if (!stick) this.lastSupport = null;
@@ -306,6 +319,25 @@ export class TowerSim {
     return Math.sqrt(r2);
   }
 
+  /** 정착한 팬케이크만 담은 스냅샷 (계측/파일 저장용). 서버가 클라이언트에 주는 것과 같은 내용. */
+  snapshot(): TowerData {
+    const n = this.spawnedCount;
+    return {
+      count: n,
+      diameter: this.cfg.diameter,
+      thickness: this.cfg.thickness,
+      unitCm: this.cfg.unitCm,
+      px: this.px.slice(0, n), py: this.py.slice(0, n), pz: this.pz.slice(0, n),
+      qx: this.qx.slice(0, n), qy: this.qy.slice(0, n), qz: this.qz.slice(0, n), qw: this.qw.slice(0, n),
+      scale: this.scale.slice(0, n), tscale: this.tscale.slice(0, n),
+    };
+  }
+
+  /** 현재 탑의 Stacking 품질 계측 (ACTIVE 제외) */
+  metrics(): StackingMetrics {
+    return computeStackingMetrics({ ...this.snapshot(), include: (id) => this.state[id] !== STATE_ACTIVE });
+  }
+
   /** 리소스 해제 */
   free(): void {
     this.world.free();
@@ -326,8 +358,10 @@ export class TowerSim {
 
     const ang = rng() * Math.PI * 2;
     const rad = c.spawnSpread * Math.sqrt(rng());
-    const baseX = c.spawnMode === "top" && this.topId >= 0 ? this.px[this.topId] : 0;
-    const baseZ = c.spawnMode === "top" && this.topId >= 0 ? this.pz[this.topId] : 0;
+    // 'top' 모드: 최고점 팬케이크 중심 위. spawnRecenter 만큼 탑 축(원점) 쪽으로 당겨 장기 표류를 제한한다.
+    const follow = c.spawnMode === "top" && this.topId >= 0;
+    const baseX = follow ? this.px[this.topId] * (1 - c.spawnRecenter) : 0;
+    const baseZ = follow ? this.pz[this.topId] * (1 - c.spawnRecenter) : 0;
     const x = baseX + Math.cos(ang) * rad;
     const z = baseZ + Math.sin(ang) * rad;
     let y = this.topY + c.spawnClearance + c.thickness;
@@ -347,6 +381,7 @@ export class TowerSim {
     );
 
     this.scale[id] = 1 + (rng() * 2 - 1) * c.sizeJitter;
+    this.tscale[id] = 1 + (rng() * 2 - 1) * c.thicknessJitter;
     this.state[id] = STATE_ACTIVE;
     this.createBody(id, x, y, z, q);
     this.activeIds.add(id);
@@ -372,7 +407,7 @@ export class TowerSim {
       .setCcdEnabled(c.ccd);
     const body = this.world.createRigidBody(desc);
     const s = this.scale[id];
-    const halfH = (c.thickness * s) / 2;
+    const halfH = this.halfTh(id);
     const radius = (c.diameter * s) / 2;
     const col = (c.edgeRadius > 0
       ? R.ColliderDesc.roundCylinder(halfH - c.edgeRadius, radius - c.edgeRadius, c.edgeRadius)
@@ -394,7 +429,7 @@ export class TowerSim {
     this.surfaceIds.add(id);
     this.state[id] = STATE_SURFACE;
     this.addToCell(id);
-    const top = this.py[id] + (this.cfg.thickness * this.scale[id]) / 2;
+    const top = this.py[id] + this.halfTh(id);
     if (top > this.topY) {
       this.topY = top;
       this.topId = id;
@@ -467,7 +502,7 @@ export class TowerSim {
       ux = u.x; uy = u.y; uz = u.z;
       const st = support.translation();
       sx = st.x; sy = st.y; sz = st.z;
-      sHalf = (c.thickness * this.scale[sid]) / 2;
+      sHalf = this.halfTh(sid);
     }
     // 목표 up = drape·월드up + (1-drape)·(받침 up 과 자기 착지 up 의 평균)
     // 받침 기울기는 일부만 물려받고, 착지 순간의 자기 기울기도 일부 남긴다. 기울기는 층마다 누적되지 않고 유계.
@@ -476,19 +511,28 @@ export class TowerSim {
     let tx = bx * (1 - c.drape), ty = by * (1 - c.drape) + c.drape, tz = bz * (1 - c.drape);
     const tl = Math.hypot(tx, ty, tz) || 1;
     tx /= tl; ty /= tl; tz /= tl;
-    const tiltQ = fromTo(0, 1, 0, tx, ty, tz);
+    let tiltQ = fromTo(0, 1, 0, tx, ty, tz);
+    if (c.settleTiltJitter > 0) {
+      // 시각적 변화용 소량의 무작위 기울기 (물리에는 다음 착지면의 미세한 기울기로만 영향)
+      const ja = this.rng() * Math.PI * 2;
+      const jt = (this.rng() * 2 - 1) * c.settleTiltJitter;
+      tiltQ = mulQuat(axisAngle(Math.cos(ja), 0, Math.sin(ja), jt), tiltQ);
+    }
     const q = mulQuat(tiltQ, axisAngle(0, 1, 0, yaw));
 
-    // 받침 평면 위 (x, z) 에서의 높이 + 두께 보정
-    const ownHalf = (c.thickness * this.scale[id]) / 2;
+    // 높이: 받침 중심에서 (받침 법선 u 와 자기 법선 t 의 평균 법선 n) 방향으로 정확히 반두께 합만큼 떨어지도록 y 를 푼다.
+    // (p - s) · n = sHalf + ownHalf,  p = (x, y, z).  y 만 맞추던 이전 방식은 기울기가 다를 때 가장자리가 받침에 파고들었다.
+    const ownHalf = this.halfTh(id);
+    let nx = ux + tx, ny = uy + ty, nz = uz + tz;
+    const nl = Math.hypot(nx, ny, nz) || 1;
+    nx /= nl; ny /= nl; nz /= nl;
     let y: number;
-    if (support && uy > 0.5) {
-      const planeY = sy - (ux * (t.x - sx) + uz * (t.z - sz)) / uy;
-      y = planeY + (sHalf + ownHalf) / uy;
+    if (support && ny > 0.5) {
+      y = sy + ((sHalf + ownHalf) - nx * (t.x - sx) - nz * (t.z - sz)) / ny;
     } else if (support) {
       y = t.y; // 받침이 거의 세워져 있으면 스냅하지 않음
     } else {
-      y = ownHalf;
+      y = ownHalf / Math.max(0.5, ty); // 바닥: 자기 기울기만큼 살짝 띄움
     }
     // 높이맵 보정: 이 XZ 를 덮는 고정 팬케이크의 최고점보다 아래로는 절대 놓지 않는다.
     // (CCD 를 뚫고 지나간 경우나 받침 선택이 어긋난 경우의 겹침 방지)
@@ -515,7 +559,7 @@ export class TowerSim {
         for (let i = members.length - 1; i >= 0; i--) {
           const m = members[i];
           if (m === id) continue;
-          const mTop = this.py[m] + (this.cfg.thickness * this.scale[m]) / 2;
+          const mTop = this.py[m] + this.halfTh(m);
           if (cellTop - mTop >= this.cfg.freezeDepth) {
             this.freeze(m);
             members.splice(i, 1);
@@ -547,7 +591,7 @@ export class TowerSim {
   private addToCell(id: number): void {
     const cx = this.cellOf(this.px[id]);
     const cz = this.cellOf(this.pz[id]);
-    const top = this.py[id] + (this.cfg.thickness * this.scale[id]) / 2;
+    const top = this.py[id] + this.halfTh(id);
     const r = Math.ceil((this.cfg.diameter * this.scale[id]) / 2 / this.cellSize);
     // footprint 가 덮는 셀들의 최고점을 갱신한다
     for (let dx = -r; dx <= r; dx++) {
@@ -579,7 +623,7 @@ export class TowerSim {
     let topId = -1;
     for (let id = 0; id < this.spawnedCount; id++) {
       if (this.state[id] === STATE_ACTIVE) continue;
-      const t = this.py[id] + (this.cfg.thickness * this.scale[id]) / 2;
+      const t = this.py[id] + this.halfTh(id);
       if (t > top) {
         top = t;
         topId = id;
@@ -613,10 +657,11 @@ function mulQuat(a: Quat, b: Quat): Quat {
 
 /** 쿼터니언으로 (0,1,0) 을 회전한 벡터 */
 function rotateY(q: Quat): { x: number; y: number; z: number } {
+  // v' = q (0,1,0) q*  — 표준 공식. (부호를 틀리면 드레이프가 받침 기울기를 거울상으로 물려받는다)
   return {
-    x: 2 * (q.x * q.y + q.w * q.z),
+    x: 2 * (q.x * q.y - q.w * q.z),
     y: 1 - 2 * (q.x * q.x + q.z * q.z),
-    z: 2 * (q.y * q.z - q.w * q.x),
+    z: 2 * (q.y * q.z + q.w * q.x),
   };
 }
 

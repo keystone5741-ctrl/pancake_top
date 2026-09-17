@@ -1,0 +1,415 @@
+{
+  "generatedAt": "2026-09-17T08:00:06.160Z",
+  "node": "v22.22.2",
+  "rapier": "0.20.0",
+  "results": [
+    {
+      "target": 100,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 20260917,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 114.09046800000004,
+        "steps": 115,
+        "msPerStep": {
+          "avg": 0.986087304347826,
+          "p50": 0.5221500000000106,
+          "p95": 1.719479999999976,
+          "max": 36.55653000000001
+        },
+        "msPerPancake": 1.1409046800000004,
+        "simSeconds": 1.9166666666666667,
+        "realtimeRatio": 16.799533740773732,
+        "batches": 1,
+        "maxActive": 70,
+        "maxSurface": 7,
+        "finalSurface": 6,
+        "finalFrozen": 94,
+        "leaks": 0,
+        "towerHeightM": 1.0066365778446198,
+        "idealHeightM": 1,
+        "heightEfficiency": 1.0066365778446198,
+        "footprintRadiusM": 0.03424157293404786,
+        "rssMB": 181.72265625,
+        "heapMB": 18.35291290283203
+      },
+      "metrics": {
+        "count": 100,
+        "height": {
+          "towerM": 1.0066365778446198,
+          "idealM": 1,
+          "efficiency": 1.0066365778446198
+        },
+        "spread": {
+          "median": 0.01573470969952662,
+          "p90": 0.027235516801786225,
+          "p95": 0.03085365818870144,
+          "max": 0.03424157293404786
+        },
+        "tilt": {
+          "median": 2.003626115810185,
+          "p90": 4.528134693163312,
+          "p95": 6.368412363338889,
+          "max": 7.822280934702466
+        },
+        "layerSpacing": {
+          "median": 0.9983062744140625,
+          "p05": 0.9279918670654297,
+          "p95": 1.0750484466552734
+        },
+        "penetration": {
+          "overlappingPairs": 2,
+          "max": 0.0721461383285106,
+          "p95": 0.052777115619424414,
+          "checkedPairs": 557
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 1000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 20260917,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 528.79846,
+        "steps": 916,
+        "msPerStep": {
+          "avg": 0.5758388384279473,
+          "p50": 0.5684400000000096,
+          "p95": 1.0090349999999262,
+          "max": 3.309327000000053
+        },
+        "msPerPancake": 0.52879846,
+        "simSeconds": 15.266666666666666,
+        "realtimeRatio": 28.87048246446608,
+        "batches": 2,
+        "maxActive": 245,
+        "maxSurface": 9,
+        "finalSurface": 7,
+        "finalFrozen": 993,
+        "leaks": 0,
+        "towerHeightM": 10.12507794111967,
+        "idealHeightM": 10,
+        "heightEfficiency": 1.0125077941119671,
+        "footprintRadiusM": 0.0649398104900222,
+        "rssMB": 165.12109375,
+        "heapMB": 24.327117919921875
+      },
+      "metrics": {
+        "count": 1000,
+        "height": {
+          "towerM": 10.12507794111967,
+          "idealM": 10,
+          "efficiency": 1.0125077941119671
+        },
+        "spread": {
+          "median": 0.020643575769035007,
+          "p90": 0.03673086846082715,
+          "p95": 0.04029261989052022,
+          "max": 0.0649398104900222
+        },
+        "tilt": {
+          "median": 2.2526838256969364,
+          "p90": 4.424292465039776,
+          "p95": 5.197887857173952,
+          "max": 9.4199271675275
+        },
+        "layerSpacing": {
+          "median": 1.0090065002441406,
+          "p05": 0.9233856201171875,
+          "p95": 1.114044189453125
+        },
+        "penetration": {
+          "overlappingPairs": 29,
+          "max": 0.11118094165484052,
+          "p95": 0.087922593853062,
+          "checkedPairs": 5636
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 10000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 20260917,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 4732.478607999999,
+        "steps": 9160,
+        "msPerStep": {
+          "avg": 0.5153999651746769,
+          "p50": 0.506876999999804,
+          "p95": 0.9469000000001415,
+          "max": 1.8165100000001075
+        },
+        "msPerPancake": 0.4732478607999999,
+        "simSeconds": 152.66666666666666,
+        "realtimeRatio": 32.25934638322335,
+        "batches": 20,
+        "maxActive": 245,
+        "maxSurface": 9,
+        "finalSurface": 7,
+        "finalFrozen": 9993,
+        "leaks": 0,
+        "towerHeightM": 101.45206859648228,
+        "idealHeightM": 100,
+        "heightEfficiency": 1.0145206859648228,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 183.37109375,
+        "heapMB": 38.84654998779297
+      },
+      "metrics": {
+        "count": 10000,
+        "height": {
+          "towerM": 101.45206859648228,
+          "idealM": 100,
+          "efficiency": 1.0145206859648228
+        },
+        "spread": {
+          "median": 0.025525609700032627,
+          "p90": 0.048233170593689714,
+          "p95": 0.05510451774546793,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.3155216850991853,
+          "p90": 4.449175594031636,
+          "p95": 5.385355496461883,
+          "max": 11.905289015166307
+        },
+        "layerSpacing": {
+          "median": 1.009521484375,
+          "p05": 0.92742919921875,
+          "p95": 1.11541748046875
+        },
+        "penetration": {
+          "overlappingPairs": 333,
+          "max": 0.1841162766503822,
+          "p95": 0.10733524195380748,
+          "checkedPairs": 56441
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 100000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 20260917,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 43140.292844,
+        "steps": 91606,
+        "msPerStep": {
+          "avg": 0.4703471092395739,
+          "p50": 0.4658479999998235,
+          "p95": 0.8472380000002886,
+          "max": 5.0955269999994925
+        },
+        "msPerPancake": 0.43140292844000006,
+        "simSeconds": 1526.7666666666667,
+        "realtimeRatio": 35.39073487951557,
+        "batches": 200,
+        "maxActive": 246,
+        "maxSurface": 11,
+        "finalSurface": 7,
+        "finalFrozen": 99993,
+        "leaks": 0,
+        "towerHeightM": 1013.4982996156812,
+        "idealHeightM": 1000,
+        "heightEfficiency": 1.0134982996156812,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 231.5859375,
+        "heapMB": 45.904449462890625
+      },
+      "metrics": {
+        "count": 100000,
+        "height": {
+          "towerM": 1013.4982996156813,
+          "idealM": 1000,
+          "efficiency": 1.0134982996156814
+        },
+        "spread": {
+          "median": 0.027358329175910457,
+          "p90": 0.04903858168662095,
+          "p95": 0.05525971181741893,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.2497651706130646,
+          "p90": 4.363406023898798,
+          "p95": 5.264391078045314,
+          "max": 12.28191283536528
+        },
+        "layerSpacing": {
+          "median": 1.007080078125,
+          "p05": 0.927734375,
+          "p95": 1.11572265625
+        },
+        "penetration": {
+          "overlappingPairs": 3440,
+          "max": 0.23996762768906166,
+          "p95": 0.10718622595930427,
+          "checkedPairs": 565669
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    }
+  ]
+}

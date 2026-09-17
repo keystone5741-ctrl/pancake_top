@@ -11,7 +11,7 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { TowerSim, DEFAULT_CONFIG, type SimConfig } from "../src/sim";
+import { TowerSim, DEFAULT_CONFIG, PRESETS, encodeTower, formatMetrics, type SimConfig, type PresetName, type StackingMetrics } from "../src/sim";
 
 /** 1 unit = 1 m 프리셋: 실제 치수 + 실제 중력, Rapier lengthUnit 으로 허용오차 스케일링 */
 const METERS: Partial<SimConfig> = {
@@ -26,6 +26,8 @@ interface Args {
   slab: number;
   releaseMaxSteps: number;
   out?: string;
+  dump?: string;
+  preset?: PresetName;
   cfg: Partial<SimConfig>;
 }
 
@@ -40,6 +42,8 @@ function parseArgs(argv: string[]): Args {
       case "--slab": a.slab = Number(v); i++; break;
       case "--release-max-steps": a.releaseMaxSteps = Number(v); i++; break;
       case "--out": a.out = v; i++; break;
+      case "--dump": a.dump = v; i++; break;
+      case "--preset": a.preset = v as PresetName; Object.assign(a.cfg, PRESETS[v as PresetName]); i++; break;
       case "--batch": a.cfg.batchSize = Number(v); i++; break;
       case "--spawn-per-step": a.cfg.spawnPerStep = Number(v); i++; break;
       case "--spread": a.cfg.spawnSpread = Number(v); i++; break;
@@ -69,7 +73,9 @@ function parseArgs(argv: string[]): Args {
 
 interface RunResult {
   target: number;
+  preset?: string;
   config: SimConfig;
+  metrics?: StackingMetrics;
   build: {
     totalMs: number;
     steps: number;
@@ -227,7 +233,14 @@ async function main(): Promise<void> {
     console.log(`=== ${target.toLocaleString()} pancakes ===`);
     const sim = new TowerSim(RAPIER, target, args.cfg);
     const build = runBuild(sim, target, log);
-    const r: RunResult = { target, config: sim.cfg, build };
+    const r: RunResult = { target, preset: args.preset, config: sim.cfg, build, metrics: sim.metrics() };
+    console.log(formatMetrics(r.metrics!).split("\n").map((l) => "  " + l).join("\n"));
+    if (args.dump) {
+      const name = args.dump.replace("{target}", String(target)).replace("{preset}", args.preset ?? "default");
+      mkdirSync(resolve(name, ".."), { recursive: true });
+      writeFileSync(name, Buffer.from(encodeTower(sim.snapshot())));
+      console.log(`  dumped ${name}`);
+    }
     console.log(
       `  build: ${(build.totalMs / 1000).toFixed(2)}s, ${build.steps} steps, ${build.msPerStep.avg.toFixed(2)} ms/step (p95 ${build.msPerStep.p95.toFixed(2)}, max ${build.msPerStep.max.toFixed(1)}), ${build.msPerPancake.toFixed(3)} ms/pancake, ${build.realtimeRatio.toFixed(1)}x realtime`,
     );

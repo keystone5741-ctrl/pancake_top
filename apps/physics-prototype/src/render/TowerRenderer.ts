@@ -1,6 +1,18 @@
 import * as THREE from "three";
-import type { TowerSim } from "../sim";
 import { STATE_ACTIVE, STATE_FROZEN } from "../sim";
+
+/**
+ * 렌더러가 읽는 것 = 서버가 결정한 값뿐 (플랜 §8, Phase 0.5 §7).
+ * TowerSim(라이브 물리) 과 로드된 TowerData(서버 결과 파일) 둘 다 이 형태를 만족한다.
+ */
+export interface InstanceSource {
+  px: Float32Array; py: Float32Array; pz: Float32Array;
+  qx: Float32Array; qy: Float32Array; qz: Float32Array; qw: Float32Array;
+  scale: Float32Array; tscale: Float32Array;
+  state: Uint8Array;
+  spawned: number;
+  dirty: number[];
+}
 
 export type Quality = "ultra" | "standard" | "performance";
 
@@ -82,7 +94,7 @@ export class TowerRenderer {
   }
 
   /** sim.dirty 에 있는 id 들의 행렬/색을 갱신 */
-  sync(sim: TowerSim): void {
+  sync(sim: InstanceSource): void {
     const touched = new Set<THREE.InstancedMesh>();
     const cs = this.opts.chunkSize;
     for (const id of sim.dirty) {
@@ -91,14 +103,15 @@ export class TowerRenderer {
       this.p.set(sim.px[id], sim.py[id], sim.pz[id]);
       this.q.set(sim.qx[id], sim.qy[id], sim.qz[id], sim.qw[id]);
       const sc = sim.scale[id];
-      this.s.set(sc, sc, sc);
+      this.s.set(sc, sim.tscale[id], sc);
       this.m.compose(this.p, this.q, this.s);
       mesh.setMatrixAt(idx, this.m);
       if (idx >= mesh.count) mesh.count = idx + 1;
 
       const st = sim.state[id];
       const br = this.baseColors[id * 3], bg = this.baseColors[id * 3 + 1], bb = this.baseColors[id * 3 + 2];
-      if (this.opts.colorByState && st === STATE_ACTIVE) this.c.setRGB(1.0, 0.95, 0.75);
+      if (id === this.highlighted) this.c.setRGB(1.0, 0.2, 0.2);
+      else if (this.opts.colorByState && st === STATE_ACTIVE) this.c.setRGB(1.0, 0.95, 0.75);
       else if (this.opts.colorByState && st === STATE_FROZEN) this.c.setRGB(br * 0.75, bg * 0.75, bb * 0.75);
       else this.c.setRGB(br, bg, bb);
       mesh.setColorAt(idx, this.c);
@@ -110,8 +123,42 @@ export class TowerRenderer {
     }
   }
 
+  private highlighted = -1;
+
+  /**
+   * Find My Pancake (플랜 §35): id → chunk → instance index. 전체 탐색 없이 O(1).
+   * 반환: 월드 좌표. 없으면 null.
+   */
+  locate(id: number): THREE.Vector3 | null {
+    const ci = Math.floor(id / this.opts.chunkSize);
+    const mesh = this.chunks[ci];
+    if (!mesh || id % this.opts.chunkSize >= mesh.count) return null;
+    mesh.getMatrixAt(id % this.opts.chunkSize, this.m);
+    return new THREE.Vector3().setFromMatrixPosition(this.m);
+  }
+
+  /** 강조 표시 (이전 강조는 해제). 색만 바꾸며 transform 은 건드리지 않는다. */
+  highlight(id: number, src: InstanceSource): void {
+    const prev = this.highlighted;
+    this.highlighted = id;
+    const saved = src.dirty;
+    src.dirty = prev >= 0 ? [prev, id] : [id];
+    this.sync(src);
+    src.dirty = saved;
+  }
+
+  /** 인스턴스 하나의 현재 행렬 위치/회전을 읽는다 (수렴 검증용) */
+  readInstance(id: number, outPos: THREE.Vector3, outQuat: THREE.Quaternion): boolean {
+    const ci = Math.floor(id / this.opts.chunkSize);
+    const mesh = this.chunks[ci];
+    if (!mesh) return false;
+    mesh.getMatrixAt(id % this.opts.chunkSize, this.m);
+    this.m.decompose(outPos, outQuat, this.s);
+    return true;
+  }
+
   /** 전체 재동기화 (품질 변경 등) */
-  syncAll(sim: TowerSim): void {
+  syncAll(sim: InstanceSource): void {
     const saved = sim.dirty;
     sim.dirty = Array.from({ length: sim.spawned }, (_, i) => i);
     this.sync(sim);
