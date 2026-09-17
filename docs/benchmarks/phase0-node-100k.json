@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T07:36:04.890Z",
+  "generatedAt": "2026-09-17T07:43:36.419Z",
   "node": "v22.22.2",
   "rapier": "0.20.0",
   "results": [
@@ -43,41 +43,41 @@
         "maxStepsPerBatch": 3000
       },
       "build": {
-        "totalMs": 39198.690993000004,
-        "steps": 91799,
+        "totalMs": 38783.229764,
+        "steps": 91798,
         "msPerStep": {
-          "avg": 0.4262356490375764,
-          "p50": 0.42017699999996694,
-          "p95": 0.7336500000019441,
-          "max": 36.382672000000014
+          "avg": 0.42171920439443367,
+          "p50": 0.4165920000014012,
+          "p95": 0.7252989999997226,
+          "max": 37.08987300000001
         },
-        "msPerPancake": 0.39198690993,
-        "simSeconds": 1529.9833333333333,
-        "realtimeRatio": 39.03149045478467,
+        "msPerPancake": 0.38783229764000005,
+        "simSeconds": 1529.9666666666667,
+        "realtimeRatio": 39.44918141105507,
         "batches": 200,
         "maxActive": 246,
-        "maxSurface": 13,
+        "maxSurface": 14,
         "finalSurface": 7,
         "finalFrozen": 99993,
         "leaks": 0,
-        "towerHeightM": 1001.128790832758,
+        "towerHeightM": 1001.099493957758,
         "idealHeightM": 1000,
-        "heightEfficiency": 1.001128790832758,
-        "footprintRadiusM": 0.5796912914894606,
-        "rssMB": 288.03515625,
-        "heapMB": 24.516555786132812
+        "heightEfficiency": 1.001099493957758,
+        "footprintRadiusM": 0.5668329879529953,
+        "rssMB": 213.48046875,
+        "heapMB": 49.57640075683594
       },
       "release": {
         "mode": "all at once",
-        "settledAfter": 5649,
+        "settledAfter": 5664,
         "released": 100000,
-        "totalMs": 254198.162993,
+        "totalMs": 241580.80874299997,
         "steps": 600,
-        "msPerStep": 423.66360498833336,
+        "msPerStep": 402.6346812383333,
         "maxActive": 100000,
-        "leaks": 100,
-        "heightAfterM": 9.718973659873008,
-        "footprintAfterM": 0.6007256249723363,
+        "leaks": 0,
+        "heightAfterM": 9.899647139310837,
+        "footprintAfterM": 0.6758883284971716,
         "timedOut": true
       }
     }
