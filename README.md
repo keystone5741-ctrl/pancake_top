@@ -14,23 +14,33 @@
 | [`docs/benchmarks/phase0-2026-09-17.md`](docs/benchmarks/phase0-2026-09-17.md) | Phase 0 물리 프로토타입 측정 결과와 결론 |
 | [`docs/benchmarks/phase0.5-2026-09-17.md`](docs/benchmarks/phase0.5-2026-09-17.md) | Phase 0.5 물리·시각 검증: 품질 계측, 프리셋 비교, Drop 스케줄링, 실제 기기 절차 |
 | [`docs/benchmarks/phase0.75-real-devices.md`](docs/benchmarks/phase0.75-real-devices.md) | Phase 0.75 실제 기기 성능 게이트: Device Suite 실행 절차, 결과 표(기기 측정 대기), 높이 지표 분리, Drop 애니메이션 |
+| [`docs/phase1/ARCHITECTURE.md`](docs/phase1/ARCHITECTURE.md) · [`TOWER_ENGINE.md`](docs/phase1/TOWER_ENGINE.md) · [`CONTINUOUS_DROP.md`](docs/phase1/CONTINUOUS_DROP.md) | Phase 1 World Engine 설계: 패키지 의존 방향, Chunk/인덱스/스트리밍, 연속 Drop 시뮬레이션과 발견한 버그 |
+| [`docs/benchmarks/phase1-world-engine.md`](docs/benchmarks/phase1-world-engine.md) | Phase 1 벤치마크: 100k/500k/1M 구조, 연속 시뮬레이션, 증분 vs 일괄, 물리 회귀표, 원거리 비교 |
 
 ## 코드
 
 ```text
-apps/physics-prototype/   Phase 0 — 물리 프로토타입 (Three.js + Rapier). 브라우저 앱 + Node 벤치마크
+apps/world-prototype/     Phase 1 — World Engine 검증 앱 (chunk 스트리밍, LOD, Find, Height Mode, Continuous Drop, Replay)
+apps/physics-prototype/   Phase 0/0.5/0.75 — 물리 프로토타입과 벤치마크 (재현용 유지)
+packages/pancake-core/    공용 타입, 단위 변환, Height Milestone
+packages/pancake-physics/ 물리 코어(TowerSim), 계측, ContinuousDropSimulator
+packages/tower-engine/    Chunk, 인덱스, 높이, 가시성, 스트리밍, .chunk 바이너리
+packages/pancake-renderer/ Three.js InstancedMesh 렌더러, LOD, QualityManager, 실루엣, DropReplay
+packages/pancake-navigation/ 카메라 모드, Find, 고도 내비게이터
 ```
 
 ```bash
 pnpm install
-pnpm proto        # 브라우저 프로토타입 (http://localhost:5173)
-pnpm bench        # Node 헤드리스 물리 벤치마크
-pnpm --filter physics-prototype test   # 단위 테스트
+pnpm world        # World prototype  http://localhost:5174  (?synthetic=100000 · ?synthetic=1000000 · ?find=54321 · ?drop=5000)
+pnpm proto        # Physics prototype http://localhost:5173
+pnpm typecheck && pnpm test && pnpm build
 ```
+
+아키텍처: [`docs/phase1/ARCHITECTURE.md`](docs/phase1/ARCHITECTURE.md)
 
 ## 현재 상태
 
-**Phase 0 / 0.5** 완료, **Phase 0.75 — Real Device Performance Gate** 는 도구 준비 완료·실제 기기 측정 대기 (플랜 §44). 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
+**Phase 0 / 0.5** 완료, **Phase 0.75** 도구 준비 완료(실제 기기 측정 대기), **Phase 1 — Core World Engine** 구현 완료 (플랜 §44). 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
 
 ## 개발 역할 (§46)
 

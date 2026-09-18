@@ -954,7 +954,13 @@ Next Drop 4m 22s
 
 물리 규칙을 동결한 채, 실제 사용자 기기(Windows Chrome / iPhone Safari / Android Chrome)에서 Tower Renderer 가 어느 규모까지 정상 작동하는지 측정하고 Phase 1 의 렌더링 품질 정책을 정한다. 100k 기본 → 품질 3종 → Find → 전체 뷰 → Drop 애니메이션 → 250k/500k/1M Scale.
 
-**상태 (2026-09-18): 도구·절차 준비 완료, 실제 기기 측정 대기.** [`benchmarks/phase0.75-real-devices.md`](./benchmarks/phase0.75-real-devices.md). 기기 결과가 저장되기 전까지 Phase 1 에 진입하지 않는다.
+**상태 (2026-09-18): 도구·절차 준비 완료, 실제 기기 측정 대기.** [`benchmarks/phase0.75-real-devices.md`](./benchmarks/phase0.75-real-devices.md). 기기 결과가 들어오면 렌더링 threshold 와 기본 quality preset 만 후속 조정한다.
+
+### Phase 1 — Core World Engine
+
+프로토타입을 제품용 World / Tower Engine 으로: 공용 패키지 분리(core / physics / tower-engine / renderer / navigation), Chunk 스트리밍(UNLOADED→CPU_READY→GPU_LOW→GPU_HIGH), 화면 크기 기반 3단계 LOD, chunk 컬링, Quality Manager, 카메라 모드와 Find My Pancake, 고도 내비게이터, Height Mode 축척 시각화, Continuous Drop Simulation(OPEN→…→RELEASED), Drop Replay(서버 값 수렴), `.chunk` 바이너리, 원거리 표현 A/B/C 비교.
+
+**상태 (2026-09-18): 구현 완료.** [`phase1/ARCHITECTURE.md`](./phase1/ARCHITECTURE.md), [`benchmarks/phase1-world-engine.md`](./benchmarks/phase1-world-engine.md). 물리 규칙은 동결했으며 버그 2건(Rapier body 제거 패닉, 바닥 매몰 팬케이크)만 수정하고 회귀 테스트를 추가했다.
 
 ### Phase 1 — Million Pancake Rendering Test
 

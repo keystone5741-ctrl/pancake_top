@@ -1,0 +1,504 @@
+{
+  "generatedAt": "2026-09-18T02:30:34.524Z",
+  "results": {
+    "structural-100000": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 1,
+      "gpuChunks": 1,
+      "visibleChunks": 1,
+      "renderedInstances": 10000,
+      "lodCounts": [
+        193,
+        1217,
+        8590
+      ],
+      "estimatedGpuInstanceMB": 2.17437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 999.8384744475837,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 0.4041057140547815,
+      "frameMsP95": 1192.7999999998137,
+      "frameMsP99": 1192.7999999998137,
+      "drawCalls": 4,
+      "triangles": 257520,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 598.2000000001863,
+      "jsHeapMB": 43910071,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "structural-500000": {
+      "count": 500000,
+      "chunks": 50,
+      "loadedChunks": 48,
+      "gpuChunks": 47,
+      "visibleChunks": 47,
+      "renderedInstances": 470000,
+      "lodCounts": [
+        422,
+        2442,
+        467136
+      ],
+      "estimatedGpuInstanceMB": 102.19573974609375,
+      "towerHeightM": 4999.6235601926155,
+      "cameraAltitudeM": 4672.163596506442,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 1.1630611770181631,
+      "frameMsP95": 396.5,
+      "frameMsP99": 396.5,
+      "drawCalls": 51,
+      "triangles": 11316480,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 689.2000000001863,
+      "jsHeapMB": 157020927,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "structural-1000000": {
+      "count": 1000000,
+      "chunks": 100,
+      "loadedChunks": 1,
+      "gpuChunks": 1,
+      "visibleChunks": 1,
+      "renderedInstances": 10000,
+      "lodCounts": [
+        190,
+        1222,
+        8588
+      ],
+      "estimatedGpuInstanceMB": 2.17437744140625,
+      "towerHeightM": 9999.506067696724,
+      "cameraAltitudeM": 9999.706067696723,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 0.10346718538215705,
+      "frameMsP95": 1146.5,
+      "frameMsP99": 1146.5,
+      "drawCalls": 3,
+      "triangles": 257376,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 650,
+      "jsHeapMB": 304435127,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "find-54321": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 1,
+      "gpuChunks": 1,
+      "visibleChunks": 1,
+      "renderedInstances": 10000,
+      "lodCounts": [
+        864,
+        3418,
+        5718
+      ],
+      "estimatedGpuInstanceMB": 2.17437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 543.148857421875,
+      "quality": "standard",
+      "farView": "silhouette",
+      "fps": 0.4496200710399524,
+      "frameMsP95": 1335.2999999998137,
+      "frameMsP99": 1335.2999999998137,
+      "drawCalls": 6,
+      "triangles": 662304,
+      "lodTriangles": [
+        448,
+        40,
+        24
+      ],
+      "loadMs": 743.7000000001863,
+      "jsHeapMB": 35200273,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": {
+        "id": 54320,
+        "chunkId": 5,
+        "instanceIndex": 4320
+      },
+      "drop": null,
+      "replay": null
+    },
+    "height-mode": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 1,
+      "gpuChunks": 1,
+      "visibleChunks": 1,
+      "renderedInstances": 10000,
+      "lodCounts": [
+        208,
+        1289,
+        8503
+      ],
+      "estimatedGpuInstanceMB": 2.17437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 0.8,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 5.08582326764145,
+      "frameMsP95": 445,
+      "frameMsP99": 445,
+      "drawCalls": 5,
+      "triangles": 258696,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 604.0999999996275,
+      "jsHeapMB": 23414267,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-pure": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 10,
+      "gpuChunks": 10,
+      "visibleChunks": 10,
+      "renderedInstances": 100000,
+      "lodCounts": [
+        0,
+        0,
+        100000
+      ],
+      "estimatedGpuInstanceMB": 21.7437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 746.3483742667449,
+      "quality": "performance",
+      "farView": "pure",
+      "fps": 0.3350644999162339,
+      "frameMsP95": 850,
+      "frameMsP99": 850,
+      "drawCalls": 12,
+      "triangles": 2400064,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 549.8999999999069,
+      "jsHeapMB": 43929339,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-silhouette": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 10,
+      "gpuChunks": 10,
+      "visibleChunks": 10,
+      "renderedInstances": 100000,
+      "lodCounts": [
+        0,
+        0,
+        100000
+      ],
+      "estimatedGpuInstanceMB": 21.7437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 746.3483742667449,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 0.4225292601512322,
+      "frameMsP95": 468.10000000009313,
+      "frameMsP99": 468.10000000009313,
+      "drawCalls": 13,
+      "triangles": 2400064,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 569.2999999998137,
+      "jsHeapMB": 43790949,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-atmospheric": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 10,
+      "gpuChunks": 10,
+      "visibleChunks": 10,
+      "renderedInstances": 100000,
+      "lodCounts": [
+        0,
+        0,
+        100000
+      ],
+      "estimatedGpuInstanceMB": 21.7437744140625,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 746.3483742667449,
+      "quality": "performance",
+      "farView": "atmospheric",
+      "fps": 0.48046893768311427,
+      "frameMsP95": 391.79999999981374,
+      "frameMsP99": 391.79999999981374,
+      "drawCalls": 16,
+      "triangles": 2400260,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 616,
+      "jsHeapMB": 43007315,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-mid-pure": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 2,
+      "gpuChunks": 2,
+      "visibleChunks": 2,
+      "renderedInstances": 20000,
+      "lodCounts": [
+        410,
+        2441,
+        17149
+      ],
+      "estimatedGpuInstanceMB": 4.3487548828125,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 500.15,
+      "quality": "performance",
+      "farView": "pure",
+      "fps": 0.6672894701721193,
+      "frameMsP95": 690.1000000000931,
+      "frameMsP99": 690.1000000000931,
+      "drawCalls": 7,
+      "triangles": 515992,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 567.3000000002794,
+      "jsHeapMB": 34812125,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-mid-silhouette": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 2,
+      "gpuChunks": 2,
+      "visibleChunks": 2,
+      "renderedInstances": 20000,
+      "lodCounts": [
+        410,
+        2441,
+        17149
+      ],
+      "estimatedGpuInstanceMB": 4.3487548828125,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 500.15,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 1.3236267372600927,
+      "frameMsP95": 755.5,
+      "frameMsP99": 755.5,
+      "drawCalls": 7,
+      "triangles": 515992,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 588.4000000003725,
+      "jsHeapMB": 33586999,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "far-mid-atmospheric": {
+      "count": 100000,
+      "chunks": 10,
+      "loadedChunks": 2,
+      "gpuChunks": 2,
+      "visibleChunks": 2,
+      "renderedInstances": 20000,
+      "lodCounts": [
+        410,
+        2441,
+        17149
+      ],
+      "estimatedGpuInstanceMB": 4.3487548828125,
+      "towerHeightM": 999.6384744475837,
+      "cameraAltitudeM": 500.15,
+      "quality": "performance",
+      "farView": "atmospheric",
+      "fps": 0.8374507997654485,
+      "frameMsP95": 542.1999999997206,
+      "frameMsP99": 542.1999999997206,
+      "drawCalls": 7,
+      "triangles": 515992,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 599.2999999998137,
+      "jsHeapMB": 35970899,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": null,
+      "replay": null
+    },
+    "drop-5000-replay": {
+      "count": 105000,
+      "chunks": 11,
+      "loadedChunks": 1,
+      "gpuChunks": 1,
+      "visibleChunks": 1,
+      "renderedInstances": 5000,
+      "lodCounts": [
+        348,
+        1382,
+        3270
+      ],
+      "estimatedGpuInstanceMB": 1.087188720703125,
+      "towerHeightM": 1050.3079378364337,
+      "cameraAltitudeM": 1050.5079378364337,
+      "quality": "performance",
+      "farView": "silhouette",
+      "fps": 11.214953271028037,
+      "frameMsP95": 441.8000000002794,
+      "frameMsP99": 479.79999999981374,
+      "drawCalls": 4,
+      "triangles": 145040,
+      "lodTriangles": [
+        64,
+        32,
+        24
+      ],
+      "loadMs": 636.5,
+      "jsHeapMB": 52981485,
+      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+      "viewport": [
+        1280,
+        800
+      ],
+      "dpr": 1,
+      "selected": null,
+      "drop": {
+        "startSerial": 100000,
+        "endSerial": 104999,
+        "simulationMs": 2636.7000000011176,
+        "total": 5000,
+        "heightBeforeM": 999.6383909928799,
+        "heightAfterM": 1050.300685633421
+      },
+      "replay": {
+        "animated": 5000,
+        "durationMs": 4000,
+        "maxPosError": 0,
+        "maxQuatError": 2.0215311956838789e-7,
+        "converged": true,
+        "framesDuringReplay": 17,
+        "fpsDuringReplay": 4.033406092815524
+      }
+    }
+  }
+}

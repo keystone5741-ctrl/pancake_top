@@ -8,15 +8,11 @@ PANCAKE DROP 플랜 §44 **Phase 0 — Physics Prototype** 과 **Phase 0.5 — P
 ## 구성
 
 ```text
-src/sim/            렌더러와 무관한 시뮬레이션 코어 (Rapier). 브라우저와 Node 가 같은 코드를 쓴다.
-  TowerSim.ts       Drop 스폰 → 낙하 → 정착(SURFACE) → 묻힘(FROZEN), Release, 높이맵, 스냅샷
-  types.ts          SimConfig 기본값과 PRESETS (stable / natural / loose)
-  metrics.ts        Stacking 품질 계측 (높이·퍼짐·기울기·층 간격·침투)
-  towerFile.ts      서버 결과 바이너리 (PKT1): position, quaternion, scale, tscale
-  *.test.ts         vitest 단위 테스트
+(시뮬레이션 코어는 Phase 1 에서 packages/pancake-physics 로 이동: TowerSim, PRESETS, metrics, PKT1, ContinuousDropSimulator)
 src/render/         Chunk 단위 InstancedMesh 렌더러. id → chunk → instance index 로 Find Pancake.
 src/main.ts         브라우저 앱: 물리 모드 / 서버 결과 로드 모드 / 합성 탑 모드, 카메라 뷰, Replay 수렴 검증, 기기 보호
-bench/run.ts        Node 벤치마크 (쌓기 + 계측 + 덤프 + Release)
+bench/run.ts        Node 벤치마크 (쌓기 + 계측 + 덤프 + Release, --base 로 기존 탑 위에 이어 쌓기)
+bench/phase1.ts     Phase 1 물리 벤치: 100k 위 연속 Drop, 증분 vs 일괄, Natural 100k 회귀
 bench/schedule.ts   10분 Drop cutoff 검증: 100k 반복 측정 (p50/p95/실패/RSS)
 bench/browser.ts    Playwright 물리 모드 자동 측정
 bench/shots.ts      Playwright 프리셋 비교/100k 장면 스크린샷 + Replay 수렴 검증

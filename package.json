@@ -8,6 +8,8 @@
     "bench": "pnpm --filter physics-prototype bench",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "world": "pnpm --filter world-prototype dev",
+    "world:build": "pnpm --filter world-prototype build"
   }
 }

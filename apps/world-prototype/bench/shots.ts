@@ -39,6 +39,11 @@ try {
   await run("find-54321", `synthetic=100000&find=54321&auto=1&quality=standard&settle=6000&shot=1`);
   await run("height-mode", `synthetic=100000&view=height&auto=1&quality=performance&settle=3000&shot=1`);
   for (const far of ["pure", "silhouette", "atmospheric"]) await run(`far-${far}`, `synthetic=100000&view=full&far=${far}&auto=1&quality=performance&settle=4000&shot=1`);
+  // 원거리 비교: 중간 거리(팬케이크 ≈ 1 px) 에서도 세 방식 비교
+  // 팬케이크 투영 직경 ≈ 1 px 가 되는 거리 (800 px, FOV 50°: d ≈ 860 units) 와 ≈ 0.3 px (d ≈ 2,500)
+  for (const far of ["pure", "silhouette", "atmospheric"]) await run(`far-mid-${far}`, `synthetic=100000&view=far:860&far=${far}&auto=1&quality=performance&settle=4000&shot=1&reducedMotion=1`);
+  // Continuous drop + replay (브라우저 내 서버 역할) — 100k 위 5,000 장
+  await run("drop-5000-replay", `synthetic=100000&drop=5000&auto=1&quality=performance&settle=2000&shot=1`);
   await browser.close();
   writeFileSync(resolve(outDir, "phase1-world-structural.json"), JSON.stringify({ generatedAt: new Date().toISOString(), results }, null, 2));
 } finally { server.kill(); }

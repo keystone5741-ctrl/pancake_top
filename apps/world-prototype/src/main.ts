@@ -250,6 +250,7 @@ async function start(): Promise<void> {
     else if (view === "top") rig.top();
     else if (view === "height") showHeightMode();
     else if (view?.startsWith("alt:")) rig.goToAltitude(Number(view.slice(4)));
+    else if (view?.startsWith("far:")) { const d = Number(view.slice(4)); const h = tower.height; rig.flyTo([d * 0.7071, h * 0.5 + d * 0.15, d * 0.7071], [0, h * 0.5, 0], "explore"); }
     else rig.top();
   });
   if (params.get("find")) setTimeout(() => void findPancake(Number(params.get("find"))), 300);
