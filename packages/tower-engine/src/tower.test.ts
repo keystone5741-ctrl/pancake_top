@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TOWER_CONFIG, MemoryChunkSource, Tower, chunkIdOf, instanceIndexOf, serialOf, generateSyntheticTower, projectedDiameterPx, distanceForProjectedPx, boundsIntersectsFrustum, decideChunkStates, estimateInstanceBytes, type FrustumPlanes } from "./index";
+import { DEFAULT_STREAMING_POLICY, DEFAULT_TOWER_CONFIG, MemoryChunkSource, Tower, chunkIdOf, instanceIndexOf, serialOf, generateSyntheticTower, projectedDiameterPx, distanceForProjectedPx, boundsIntersectsFrustum, decideChunkStates, estimateInstanceBytes, type FrustumPlanes } from "./index";
 
 const cfg = { ...DEFAULT_TOWER_CONFIG, chunkSize: 1000 };
 
@@ -118,11 +118,14 @@ describe("projection / streaming", () => {
     const t = tower(2500);
     const near = decideChunkStates(t.headers, { position: [3, 5, 0], frustum: frustumLookingAt(10, -10), viewport: vp }, cfg.diameter);
     expect(near.find((d) => d.id === 0)!.desired).toBe("GPU_HIGH");
-    const far = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(4000, -10), viewport: vp }, cfg.diameter);
+    const far = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(4000, -10), viewport: vp }, cfg.diameter, { ...DEFAULT_STREAMING_POLICY, minVisiblePx: 0 });
     expect(far.every((d) => d.desired === "GPU_LOW")).toBe(true);
-    const out = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(50, 40), viewport: vp }, cfg.diameter, { highLodMinPx: 4, prefetchDistanceFactor: 2, keepGpuDistance: 2000 });
+    // 기본 정책: 3000 units 에서 팬케이크는 ≈0.3 px → 보이지만 받지 않는다 (실루엣이 대신 그린다)
+    const sub = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(4000, -10), viewport: vp }, cfg.diameter);
+    expect(sub.every((d) => d.projectedPx < 0.5 && d.desired === "UNLOADED")).toBe(true);
+    const out = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(50, 40), viewport: vp }, cfg.diameter, { highLodMinPx: 4, prefetchDistanceFactor: 2, keepGpuDistance: 2000, minVisiblePx: 0.5 });
     expect(out.every((d) => d.desired === "CPU_READY")).toBe(true);
-    const gone = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(50, 40), viewport: vp }, cfg.diameter, { highLodMinPx: 4, prefetchDistanceFactor: 1.1, keepGpuDistance: 100 });
+    const gone = decideChunkStates(t.headers, { position: [0, 5, 3000], frustum: frustumLookingAt(50, 40), viewport: vp }, cfg.diameter, { highLodMinPx: 4, prefetchDistanceFactor: 1.1, keepGpuDistance: 100, minVisiblePx: 0.5 });
     expect(gone.every((d) => d.desired === "UNLOADED")).toBe(true);
   });
   it("estimates instance memory", () => {

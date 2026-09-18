@@ -26,7 +26,7 @@ export class ChunkRenderer {
   private readonly material: THREE.MeshStandardMaterial;
   private readonly meshSets = new Map<CoreChunkId, ChunkMeshSet>();
   private readonly colorCache = new Map<CoreChunkId, Float32Array>();
-  private readonly policy: StreamingPolicy;
+  readonly policy: StreamingPolicy;
   private readonly repartitionDistance: number;
   private lastPartitionPos = new THREE.Vector3(Infinity, Infinity, Infinity);
   private lastQualityName: string;
@@ -82,16 +82,31 @@ export class ChunkRenderer {
   }
 
   /** 매 프레임: 카메라 기준으로 chunk 상태·가시성·LOD 를 갱신 */
-  update(camera: THREE.PerspectiveCamera, viewportHeightPx: number, dtMs = 16): void {
+  private decide(camera: THREE.PerspectiveCamera, vp: Viewport): ChunkDecision[] {
     camera.updateMatrixWorld();
     this.projScreen.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projScreen);
     const planes = this.frustum.planes.map((p) => ({ normal: [p.normal.x, p.normal.y, p.normal.z] as [number, number, number], constant: p.constant }));
-    const camPos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
+    const pos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
+    return decideChunkStates(this.tower.headers, { position: [pos.x, pos.y, pos.z], frustum: planes, viewport: vp }, this.tower.config.diameter, this.policy);
+  }
+
+  /** 네트워크에서 받은 chunk 수 (예측 스트리밍 진단) */
+  fetchStats = { requested: 0, skippedInFlight: 0 };
+
+  /**
+   * @param fetchCamera 비행 중이면 도착 지점 카메라. 있으면 새 chunk 는 도착 지점에서 필요한 것만 받는다 (Phase 2 §46:
+   *   탑을 따라 내려가는 비행이 지나치는 chunk 를 전부 받지 않게). 이미 받은 chunk 는 현재 카메라 기준으로 그린다.
+   */
+  update(camera: THREE.PerspectiveCamera, viewportHeightPx: number, dtMs = 16, fetchCamera?: THREE.PerspectiveCamera): void {
     const vp: Viewport = { fovY: (camera.fov * Math.PI) / 180, heightPx: viewportHeightPx };
     const q = this.quality.current;
-
-    const decisions = decideChunkStates(this.tower.headers, { position: [camPos.x, camPos.y, camPos.z], frustum: planes, viewport: vp }, this.tower.config.diameter, this.policy);
+    const decisions = this.decide(camera, vp);
+    camera.updateMatrixWorld();
+    const camPos = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld);
+    const fetchOk = new Set<number>();
+    if (fetchCamera) for (const d of this.decide(fetchCamera, vp)) if (d.desired !== "UNLOADED") fetchOk.add(d.id);
+    const mayFetch = (id: number): boolean => { if (!fetchCamera || fetchOk.has(id)) { this.fetchStats.requested++; return true; } this.fetchStats.skippedInFlight++; return false; };
     this.lastDecisions = decisions;
     const moved = camPos.distanceTo(this.lastPartitionPos) > this.repartitionDistance;
     let rendered = 0, gpuChunks = 0, visibleChunks = 0;
@@ -107,12 +122,12 @@ export class ChunkRenderer {
       }
       if (d.desired === "CPU_READY") {
         if (cur === "GPU_LOW" || cur === "GPU_HIGH") { this.meshSets.get(d.id)?.dispose(); this.meshSets.delete(d.id); this.tower.setState(d.id, "CPU_READY"); }
-        else if (cur === "UNLOADED") { if (!this.tower.loadChunkSync(d.id)) void this.tower.loadChunk(d.id); }
+        else if (cur === "UNLOADED") { if (!this.tower.loadChunkSync(d.id) && mayFetch(d.id)) void this.tower.loadChunk(d.id); }
         continue;
       }
       // GPU_LOW / GPU_HIGH
       const set = this.ensureMeshSet(d.id);
-      if (!set) { void this.tower.loadChunk(d.id); continue; }
+      if (!set) { if (mayFetch(d.id)) void this.tower.loadChunk(d.id); continue; }
       if (d.desired === "GPU_LOW") {
         if (cur !== "GPU_LOW") { set.fillLowOnly(); this.tower.setState(d.id, "GPU_LOW"); }
       } else {

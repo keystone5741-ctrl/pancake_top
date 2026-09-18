@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bench:shots": "tsx bench/shots.ts",
+    "bench:streaming": "tsx bench/streaming.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

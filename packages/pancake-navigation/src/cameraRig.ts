@@ -34,6 +34,8 @@ export class CameraRig {
   }
 
   get flying(): boolean { return this.flight !== null; }
+  /** 비행 중이면 도착 지점 (스트리밍이 "지나가는 chunk" 대신 "도착해서 볼 chunk" 를 받게 한다) */
+  get flightDestination(): { pos: Vec3; target: Vec3 } | null { return this.flight ? { pos: this.flight.plan.toPos, target: this.flight.plan.toTarget } : null; }
   get lastFlightMs(): number { return this.lastFlyMs; }
   /** 카메라 고도 (m) */
   get altitudeMeters(): number { return worldUnitsToMeters(this.camera.position.y, this.tower.config.unitCm); }

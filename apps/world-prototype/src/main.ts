@@ -27,6 +27,7 @@ $("app").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#0d0f14");
 const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 2_000_000);
+const fetchCam = new THREE.PerspectiveCamera(); // 비행 도착 지점 (예측 스트리밍)
 camera.position.set(12, 8, 12);
 scene.add(new THREE.HemisphereLight("#cfd8ff", "#3a2a18", 0.9));
 const sun = new THREE.DirectionalLight("#fff2d6", 2.0);
@@ -166,8 +167,8 @@ function snapshot(): Record<string, unknown> {
     lodTriangles: chunks.lodTriangles, loadMs: firstFrameMs, jsHeapMB: (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? null,
     gpu: gpuName(), userAgent: navigator.userAgent, viewport: [innerWidth, innerHeight], dpr: renderer.getPixelRatio(),
     selected: chunks.highlight.current ? { id: chunks.highlight.current.pancakeId, chunkId: chunks.highlight.current.chunkId, instanceIndex: chunks.highlight.current.instanceIndex } : null,
-    source: sourceMode,
-    remote: remote ? { server: serverUrl, worldVersion: remoteManifest?.version, manifestFetches, chunkFetches: remote.stats.fetches, bytesDownloaded: remote.stats.bytes, cacheHits: remote.stats.cacheHits, checksumFailures: remote.stats.checksumFailures, cachedChunks: remote.cachedChunkIds.length, wsStatus } : null,
+    source: sourceMode, streamingPolicy: chunks.policy,
+    remote: remote ? { server: serverUrl, worldVersion: remoteManifest?.version, manifestFetches, chunkFetches: remote.stats.fetches, bytesDownloaded: remote.stats.bytes, cacheHits: remote.stats.cacheHits, checksumFailures: remote.stats.checksumFailures, cachedChunks: remote.cachedChunkIds.length, wsStatus, fetchRequested: chunks.fetchStats.requested, fetchSkippedInFlight: chunks.fetchStats.skippedInFlight } : null,
     drop: lastDrop,
     replay: replayReport ? { ...replayReport, framesDuringReplay: replayFrames.length, fpsDuringReplay: replayFrames.length ? 1000 / (replayFrames.reduce((a, b) => a + b, 0) / replayFrames.length) : 0 } : null,
   };
@@ -297,7 +298,9 @@ function frame(): void {
   const dt = now - last; last = now;
   rig.update();
   if (replay) { replayFrames.push(dt); if (replay.update(now)) { const r = replay.result!; $("dropStatus").textContent = `replay ${r.animated} pancakes: converged ${r.converged} (pos err ${r.maxPosError}, quat err ${r.maxQuatError.toExponential(1)})`; replayReport = { ...r }; replay = null; } }
-  chunks.update(camera, innerHeight * renderer.getPixelRatio(), dt);
+  const dest = rig.flightDestination;
+  if (dest) { fetchCam.copy(camera); fetchCam.position.set(dest.pos[0], dest.pos[1], dest.pos[2]); fetchCam.lookAt(dest.target[0], dest.target[1], dest.target[2]); }
+  chunks.update(camera, innerHeight * renderer.getPixelRatio(), dt, dest ? fetchCam : undefined);
   renderer.render(scene, camera);
   if (!firstFrameMs) firstFrameMs = performance.now() - t0;
   frameTimes.push(dt); if (frameTimes.length > 600) frameTimes.shift();
