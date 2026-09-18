@@ -7,3 +7,5 @@ dist/
 .env.*
 apps/physics-prototype/public/towers/*.bin
 apps/physics-prototype/public/drops/*.bin
+!apps/world-server/.env.example
+apps/world-server/data/
