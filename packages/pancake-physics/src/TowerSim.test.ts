@@ -104,6 +104,20 @@ describe("TowerSim stacking (natural preset)", () => {
     sim.free();
   });
 
+  it("regression: small consecutive batches do not crash the physics engine (Rapier panic with removeRigidBody)", () => {
+    // Phase 1 에서 발견: freezeMode "remove" 는 30장 뒤 20장씩 이어 쌓을 때 시드 5/8/9/12/13 에서 wasm 패닉.
+    for (const seed of [5, 8, 9, 12, 13, 14]) {
+      const sim = new TowerSim(RAPIER, 300, { ...PRESETS.natural, seed });
+      sim.queueBatch(30);
+      let step = 0;
+      while (sim.batchInFlight || sim.spawned < 250) { if (!sim.batchInFlight) sim.queueBatch(20); sim.step(); if (++step > 20000) break; }
+      expect(sim.spawned).toBe(250);
+      expect(sim.activeCount).toBe(0);
+      expect(sim.leakCount).toBe(0);
+      sim.free();
+    }
+  });
+
   // Release(붕괴) 경로는 Phase 0.5 범위 밖이다. Phase 0 스트레스 테스트 결과로만 보존하며, Rapier 0.20 이 간헐적으로
   // 패닉(unreachable)을 일으키는 문제는 정상 Drop 경로에서 재현되지 않는 한 조사하지 않는다 (phase0.5 문서 미해결 리스크).
 });

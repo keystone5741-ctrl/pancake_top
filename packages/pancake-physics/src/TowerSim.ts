@@ -30,7 +30,7 @@ const now = (): number =>
  */
 export class TowerSim {
   readonly cfg: SimConfig;
-  readonly world: RAPIER_NS.World;
+  world: RAPIER_NS.World;
 
   /** 팬케이크 transform. index = pancake id. */
   readonly px: Float32Array;
@@ -87,18 +87,44 @@ export class TowerSim {
     this.tscale = new Float32Array(capacity);
     this.state = new Uint8Array(capacity);
 
-    this.world = new R.World({ x: 0, y: this.cfg.gravity, z: 0 });
-    this.world.timestep = this.cfg.dt;
-    this.world.integrationParameters.numSolverIterations = this.cfg.solverIterations;
-    this.world.integrationParameters.contact_natural_frequency = this.cfg.contactHz;
-    this.world.integrationParameters.maxCcdSubsteps = this.cfg.ccdSubsteps;
-    this.world.integrationParameters.lengthUnit = this.cfg.lengthUnit > 0 ? this.cfg.lengthUnit : this.cfg.diameter;
+    this.world = this.createWorld();
 
     // 바닥: 충분히 넓은 고정 큐브
-    // 바닥은 두껍게(10 units): 붕괴 시 솔버가 튕겨낸 팬케이크가 뚫고 나가지 않도록
-    const ground = this.world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, -5, 0));
-    this.world.createCollider(R.ColliderDesc.cuboid(5000, 5, 5000).setFriction(this.cfg.friction), ground);
   }
+
+  private createWorld(): RAPIER_NS.World {
+    const R = this.R;
+    const world = new R.World({ x: 0, y: this.cfg.gravity, z: 0 });
+    world.timestep = this.cfg.dt;
+    world.integrationParameters.numSolverIterations = this.cfg.solverIterations;
+    world.integrationParameters.contact_natural_frequency = this.cfg.contactHz;
+    world.integrationParameters.maxCcdSubsteps = this.cfg.ccdSubsteps;
+    world.integrationParameters.lengthUnit = this.cfg.lengthUnit > 0 ? this.cfg.lengthUnit : this.cfg.diameter;
+    // 바닥은 두껍게(10 units): 붕괴 시 솔버가 튕겨낸 팬케이크가 뚫고 나가지 않도록
+    const ground = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, -5, 0));
+    world.createCollider(R.ColliderDesc.cuboid(5000, 5, 5000).setFriction(this.cfg.friction), ground);
+    return world;
+  }
+
+  /**
+   * freezeMode "rebuild": 활성 강체가 0 인 배치 경계에서 월드를 새로 만들고 SURFACE body 만 다시 넣는다.
+   * Rapier 0.20 의 removeRigidBody 패닉을 피하기 위해 개별 제거 API 를 아예 쓰지 않는다. 동적 강체가 없는 시점이므로 물리 상태 손실이 없다.
+   */
+  private rebuildWorld(): void {
+    const old = this.world;
+    this.world = this.createWorld();
+    this.bodies.clear();
+    this.bodyIds.clear();
+    this.disabledQueue.length = 0;
+    for (const id of this.surfaceIds) {
+      const body = this.createBody(id, this.px[id], this.py[id], this.pz[id], { x: this.qx[id], y: this.qy[id], z: this.qz[id], w: this.qw[id] });
+      body.setBodyType(this.R.RigidBodyType.Fixed, false);
+    }
+    old.free();
+    this.rebuilds++;
+  }
+  /** 월드 재생성 횟수 (진단) */
+  rebuilds = 0;
 
   /** 최고점 팬케이크 id (spawnMode 'top' 의 기준) */
   private topId = -1;
@@ -157,6 +183,8 @@ export class TowerSim {
     const t0 = now();
     this.dirty.length = 0;
 
+    if (this.pendingRemoval.length) { for (const b of this.pendingRemoval) this.world.removeRigidBody(b); this.pendingRemoval.length = 0; }
+    if (this.cfg.freezeMode === "rebuild" && this.disabledQueue.length > 0 && this.activeIds.size === 0) this.rebuildWorld();
     const toSpawn = Math.min(this.pendingSpawn, this.cfg.spawnPerStep);
     for (let i = 0; i < toSpawn; i++) this.spawnOne();
     this.pendingSpawn -= toSpawn;
@@ -216,10 +244,13 @@ export class TowerSim {
       }
       const stick = stickAllowed && this.touchesFixed(body);
 
-      const aboveGround = t.y > this.halfTh(id) - this.cfg.thickness * this.cfg.stickMaxPenetration;
-      if (aboveGround && (stick || body.isSleeping() || c >= this.cfg.settleFrames || forceSettle)) {
+      // 바닥에 파묻힌 채 멈춘 팬케이크(탑에서 떨어져 바닥에 부딪힌 경우)는 바닥 위로 스냅해 정착시킨다.
+      // 그대로 두면 ACTIVE 로 영원히 남아 배치가 끝나지 않는다 (Phase 1 에서 발견한 잠재 버그).
+      const belowGround = t.y <= this.halfTh(id) - this.cfg.thickness * this.cfg.stickMaxPenetration;
+      const resting = body.isSleeping() || c >= this.cfg.settleFrames || forceSettle;
+      if (stick || resting) {
         if (this.cfg.stickOnContact && this.cfg.drape > 0) {
-          if (!stick) this.lastSupport = null;
+          if (!stick || belowGround) this.lastSupport = null;
           this.drapeOnto(id, body, this.lastSupport);
           const nt = body.translation();
           const nr = body.rotation();
@@ -264,12 +295,9 @@ export class TowerSim {
         this.surfaceIds.delete(id);
         this.removeFromCell(id);
       } else if (s === STATE_FROZEN) {
-        this.createBody(id, this.px[id], this.py[id], this.pz[id], {
-          x: this.qx[id],
-          y: this.qy[id],
-          z: this.qz[id],
-          w: this.qw[id],
-        });
+        const existing = this.bodies.get(id);
+        if (existing) { existing.setEnabled(true); existing.setBodyType(R.RigidBodyType.Dynamic, true); }
+        else this.createBody(id, this.px[id], this.py[id], this.pz[id], { x: this.qx[id], y: this.qy[id], z: this.qz[id], w: this.qw[id] });
         this.frozenCount--;
       } else {
         continue;
@@ -324,18 +352,24 @@ export class TowerSim {
    * 상위 surfaceCount 장만 fixed body(SURFACE) 로 만들고 나머지는 FROZEN(transform 만). 높이맵은 전부 반영.
    * 물리 규칙은 그대로이며 초기 상태만 다르다. capacity 는 base.count + 이어서 쌓을 개수 이상이어야 한다.
    */
-  loadBase(base: TowerData, surfaceCount = 64): number {
+  loadBase(base: TowerData, surface: number | Iterable<number> = 64): number {
     if (this.spawnedCount !== 0) throw new Error("loadBase must be called on an empty sim");
     if (base.count > this.capacity) throw new Error("capacity too small for base tower");
     const n = base.count;
+    const surfaceCount = typeof surface === "number" ? surface : -1;
+    const surfaceIds = typeof surface === "number" ? null : surface;
     this.px.set(base.px.subarray(0, n)); this.py.set(base.py.subarray(0, n)); this.pz.set(base.pz.subarray(0, n));
     this.qx.set(base.qx.subarray(0, n)); this.qy.set(base.qy.subarray(0, n)); this.qz.set(base.qz.subarray(0, n)); this.qw.set(base.qw.subarray(0, n));
     this.scale.set(base.scale.subarray(0, n)); this.tscale.set(base.tscale.subarray(0, n));
     this.spawnedCount = n;
-    const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => this.py[b] - this.py[a]);
-    const surface = new Set(order.slice(0, surfaceCount));
+    let surfaceSet: Set<number>;
+    if (surfaceIds) surfaceSet = new Set(surfaceIds);
+    else {
+      const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => this.py[b] - this.py[a]);
+      surfaceSet = new Set(order.slice(0, surfaceCount));
+    }
     for (let id = 0; id < n; id++) {
-      if (surface.has(id)) {
+      if (surfaceSet.has(id)) {
         const body = this.createBody(id, this.px[id], this.py[id], this.pz[id], { x: this.qx[id], y: this.qy[id], z: this.qz[id], w: this.qw[id] });
         body.setBodyType(this.R.RigidBodyType.Fixed, false);
         this.state[id] = STATE_SURFACE;
@@ -462,7 +496,7 @@ export class TowerSim {
   }
 
   private settle(id: number, body: RigidBody): void {
-    body.setBodyType(this.R.RigidBodyType.Fixed, false);
+    body.setBodyType(this.R.RigidBodyType.Fixed, this.cfg.settleWakeUp);
     this.activeIds.delete(id);
     this.settleCounter.delete(id);
     this.releaseOrigin.delete(id);
@@ -492,6 +526,7 @@ export class TowerSim {
     this.world.contactPairsWith(col, (other) => {
       const parent = other.parent();
       if (parent && parent.bodyType() === this.R.RigidBodyType.Dynamic) return;
+      if (parent && !parent.isEnabled()) return; // disable 모드의 FROZEN body 는 제거된 것과 같이 취급
       this.world.contactPair(col, other, (manifold) => {
         const n = manifold.numContacts();
         for (let i = 0; i < n; i++) {
@@ -513,6 +548,21 @@ export class TowerSim {
     if (tooDeep && this.cfg.drape <= 0) return false;
     this.lastSupport = support;
     return true;
+  }
+
+  /** id 의 고정 body 가 동적 강체와 접촉 쌍(실제 접촉점)을 가지는가 */
+  private touchesDynamic(id: number): boolean {
+    const body = this.bodies.get(id);
+    if (!body) return false;
+    const col = body.collider(0);
+    let touching = false;
+    this.world.contactPairsWith(col, (other) => {
+      if (touching) return;
+      const parent = other.parent();
+      if (!parent || parent.bodyType() !== this.R.RigidBodyType.Dynamic || !parent.isEnabled()) return;
+      this.world.contactPair(col, other, (manifold) => { if (manifold.numContacts() > 0) touching = true; });
+    });
+    return touching;
   }
 
   /** touchesFixed 가 찾은 가장 높은 받침 (null = 바닥) */
@@ -601,6 +651,9 @@ export class TowerSim {
           if (m === id) continue;
           const mTop = this.py[m] + this.halfTh(m);
           if (cellTop - mTop >= this.cfg.freezeDepth) {
+            // 아직 동적 강체와 접촉 중인 받침은 제거하지 않는다 (받침을 빼앗지 않음). Rapier 0.20 은 이런 body 를
+            // 제거하면 이후 step 에서 패닉(unreachable)을 낸다. 다음 정착 때 다시 검사한다.
+            if (this.touchesDynamic(m)) continue;
             this.freeze(m);
             members.splice(i, 1);
             n++;
@@ -611,12 +664,36 @@ export class TowerSim {
     return n;
   }
 
+  /** deferRemove 모드에서 다음 step 직전에 제거할 body */
+  private readonly pendingRemoval: RigidBody[] = [];
+  /** disable 모드에서 비활성화된 채 남아 있는 body (id, 비활성화된 step) */
+  private readonly disabledQueue: { id: number; step: number }[] = [];
+
+  /** 비활성 body 를 실제로 제거한다. 활성 강체가 없는 시점(배치 경계)에만 호출한다. */
+  purgeDisabled(): number {
+    let n = 0;
+    for (const { id } of this.disabledQueue) {
+      const b = this.bodies.get(id);
+      if (b && !b.isEnabled()) { this.bodyIds.delete(b.handle); this.world.removeRigidBody(b); this.bodies.delete(id); n++; }
+    }
+    this.disabledQueue.length = 0;
+    return n;
+  }
+  get disabledBodyCount(): number { return this.disabledQueue.length; }
+
   private freeze(id: number): void {
     const body = this.bodies.get(id);
     if (body) {
-      this.bodyIds.delete(body.handle);
-      this.world.removeRigidBody(body);
-      this.bodies.delete(id);
+      const mode = this.cfg.freezeMode;
+      if (mode === "disable" || mode === "rebuild") {
+        body.setEnabled(false);
+        this.disabledQueue.push({ id, step: this.stepCount });
+      } else {
+        this.bodyIds.delete(body.handle);
+        if (mode === "deferRemove") this.pendingRemoval.push(body);
+        else this.world.removeRigidBody(body);
+        this.bodies.delete(id);
+      }
     }
     this.surfaceIds.delete(id);
     this.state[id] = STATE_FROZEN;

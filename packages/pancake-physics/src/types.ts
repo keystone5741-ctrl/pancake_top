@@ -36,6 +36,19 @@ export interface SimConfig {
   /** 묻힘 판정 깊이 (units). 중심 셀의 최고점이 이 값 이상 위에 있으면 FROZEN */
   freezeDepth: number;
   freezeEnabled: boolean;
+  /**
+   * FROZEN 전환 시 Rapier body 처리.
+   *  remove: 즉시 removeRigidBody (Phase 0/0.5 방식; Rapier 0.20 패닉 위험)
+   *  deferRemove: 다음 world.step 직전에 제거 (역시 패닉 위험)
+   *  disable: 제거하지 않고 setEnabled(false) (크래시 없음, body 누적으로 대형 Drop 에서 2배 느림)
+   *  rebuild: setEnabled(false) 후 활성 강체가 0 인 배치 경계에서 월드 재생성 (크래시 없음, 속도 유지) — 기본값
+   */
+  freezeMode: "remove" | "deferRemove" | "disable" | "rebuild";
+  /** 정착(SURFACE 전환) 시 접촉 중인 이웃 강체를 깨울지 (Rapier setBodyType wakeUp) */
+  settleWakeUp: boolean;
+  /** (예약) disable 모드 정리 정책. 현재는 활성 강체가 0 인 step 시작 시점에만 전부 제거한다. */
+  purgeDelaySteps: number;
+  purgePerStep: number;
   /** 원기둥 모서리 둥글림 반경 (units). 0 이면 일반 원기둥. 접촉 안정성에 크게 영향. */
   edgeRadius: number;
   /** 스폰 위치: 'axis' = 탑 축(원점) 위, 'top' = 현재 최고점 팬케이크 중심 위 */
@@ -96,6 +109,13 @@ export const DEFAULT_CONFIG: SimConfig = {
   settleFrames: 10,
   freezeDepth: 0.6,
   freezeEnabled: true,
+  settleWakeUp: false,
+  // Phase 1: "remove"(Phase 0/0.5 방식) 는 배치 10~22장 패턴에서 Rapier 0.20 이 wasm 패닉(unreachable)을 냈다
+  // (docs/phase1/CONTINUOUS_DROP.md). "rebuild" 는 개별 제거 API 를 쓰지 않고 활성 강체가 0 인 배치 경계에서 월드를
+  // 다시 만들어 SURFACE 만 넣는다. 모든 패턴에서 크래시 없음, 속도 동일, 결과는 Phase 0.5 대비 0.02% 안쪽.
+  freezeMode: "rebuild",
+  purgeDelaySteps: 2,
+  purgePerStep: 64,
   edgeRadius: 0.03,
   spawnMode: "top",
   stickOnContact: true,
