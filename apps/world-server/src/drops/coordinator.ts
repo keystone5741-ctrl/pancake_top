@@ -10,7 +10,7 @@ const TRANSITIONS: Record<DropStatus, readonly DropStatus[]> = {
   FINALIZING: ["READY", "FAILED"],
   READY: ["RELEASED", "FAILED"],
   RELEASED: [],
-  FAILED: [],
+  FAILED: ["FINALIZING"], // 관리 API retry/recover (Phase 3A §14)
 };
 
 export class InvalidTransitionError extends Error {

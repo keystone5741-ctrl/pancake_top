@@ -12,10 +12,20 @@ let sliceSize = 512;
 
 const send = (m: FromWorker): void => { process.send?.(m); };
 
+/** y 기준 상위 k 개 인덱스 (min-heap, O(n log k)) — 전체 정렬(O(n log n))은 100k 이상에서 job 마다 수십 ms 를 먹었다 (Phase 3A §6). */
+function topKIndices(py: Float32Array, n: number, k: number): number[] {
+  if (k >= n) return Array.from({ length: n }, (_, i) => i);
+  const heap: number[] = []; // 인덱스, py 기준 min-heap
+  const less = (a: number, b: number): boolean => py[a] < py[b];
+  const up = (i: number): void => { while (i > 0) { const p = (i - 1) >> 1; if (less(heap[i], heap[p])) { [heap[i], heap[p]] = [heap[p], heap[i]]; i = p; } else break; } };
+  const down = (i: number): void => { for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && less(heap[l], heap[m])) m = l; if (r < heap.length && less(heap[r], heap[m])) m = r; if (m === i) break; [heap[i], heap[m]] = [heap[m], heap[i]]; i = m; } };
+  for (let i = 0; i < n; i++) { if (heap.length < k) { heap.push(i); up(heap.length - 1); } else if (py[i] > py[heap[0]]) { heap[0] = i; down(0); } }
+  return heap.sort((a, b) => a - b);
+}
 function surfaceSlice(t: TowerData, k: number): TowerData {
   // 상위 k 장 (y 기준). 높이맵·콜라이더의 근거. 새 worker 의 base 가 된다.
   const n = t.count;
-  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => t.py[b] - t.py[a]).slice(0, Math.min(k, n)).sort((a, b) => a - b);
+  const order = topKIndices(t.py, n, Math.min(k, n));
   const m = order.length;
   const pick = (arr: Float32Array): Float32Array => { const o = new Float32Array(m); for (let i = 0; i < m; i++) o[i] = arr[order[i]]; return o; };
   return { count: m, diameter: t.diameter, thickness: t.thickness, unitCm: t.unitCm, px: pick(t.px), py: pick(t.py), pz: pick(t.pz), qx: pick(t.qx), qy: pick(t.qy), qz: pick(t.qz), qw: pick(t.qw), scale: pick(t.scale), tscale: pick(t.tscale) };
@@ -55,7 +65,8 @@ async function handle(msg: ToWorker): Promise<void> {
       }
       const all = sim.snapshot();
       const fresh = sim.snapshot(from);
-      const m = computeStackingMetrics(all);
+      // 모양 지표는 이번 job 분량 + 표면 조각만 (전체 탑 O(n) 계측은 100k 에서 job 당 60 ms 였다)
+      const m = computeStackingMetrics(fresh.count >= 2 ? fresh : surfaceSlice(all, sliceSize));
       const wallMs = performance.now() - t0;
       send({
         type: "RESULT", jobId: msg.jobId, finalTransforms: toBytes(fresh), surfaceAfter: toBytes(surfaceSlice(all, sliceSize)), heightUnits: sim.topY, spawned: sim.spawned,

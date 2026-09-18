@@ -44,8 +44,9 @@ describe("restart recovery", () => {
     expect(await storage.get("worlds/world/staging/000099-v9.chunk")).toBeNull();
     expect(sha256((await storage.get(key0))!)).toBe(m1.chunks[0].checksum);
     expect(app2.store.version).toBe(v1);
-    const retryable = (await db.query<{ n: number }>("SELECT COUNT(*)::int AS n FROM simulation_jobs WHERE status = 'RETRYABLE'")).rows[0].n;
-    expect(retryable).toBeGreaterThanOrEqual(1);
+    // RUNNING 이던(lease 없는) job 은 leader 획득 시 회수된다 (곧바로 다시 claim 될 수 있으므로 error 메모로 확인)
+    const reclaimed = (await db.query<{ n: number }>("SELECT COUNT(*)::int AS n FROM simulation_jobs WHERE error LIKE 'reclaimed%'")).rows[0].n;
+    expect(reclaimed).toBeGreaterThanOrEqual(1);
     // 미커밋 45장이 이어서 시뮬레이션되고 mutable chunk 에 이어 붙는다
     await drain(app2);
     expect(app2.store.worldState.committed_serial).toBe(a.endSerial + 45);

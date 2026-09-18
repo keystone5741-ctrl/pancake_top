@@ -30,7 +30,7 @@ describe("DropScheduler", () => {
 describe("Drop state transitions", () => {
   const all: DropStatus[] = ["OPEN", "SIMULATING", "CLOSING", "FINALIZING", "READY", "RELEASED", "FAILED"];
   it("allows the documented transitions only", () => {
-    const valid: [DropStatus, DropStatus][] = [["OPEN", "SIMULATING"], ["OPEN", "CLOSING"], ["SIMULATING", "CLOSING"], ["CLOSING", "FINALIZING"], ["CLOSING", "READY"], ["FINALIZING", "READY"], ["READY", "RELEASED"], ["OPEN", "FAILED"], ["SIMULATING", "FAILED"], ["CLOSING", "FAILED"], ["FINALIZING", "FAILED"], ["READY", "FAILED"]];
+    const valid: [DropStatus, DropStatus][] = [["OPEN", "SIMULATING"], ["OPEN", "CLOSING"], ["SIMULATING", "CLOSING"], ["CLOSING", "FINALIZING"], ["CLOSING", "READY"], ["FINALIZING", "READY"], ["READY", "RELEASED"], ["OPEN", "FAILED"], ["SIMULATING", "FAILED"], ["CLOSING", "FAILED"], ["FINALIZING", "FAILED"], ["READY", "FAILED"], ["FAILED", "FINALIZING"]];
     for (const [a, b] of valid) expect(canTransition(a, b), `${a}→${b}`).toBe(true);
     for (const a of all) for (const b of all) {
       const isValid = valid.some(([x, y]) => x === a && y === b);

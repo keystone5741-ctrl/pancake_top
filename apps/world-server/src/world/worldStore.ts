@@ -227,9 +227,9 @@ export class WorldStore {
     return r.rows[0].snapshot_id;
   }
 
-  /** 서버 시작 시 미완 job 정리 (§23, §25): RUNNING → RETRYABLE */
+  /** leader 획득 시 미완 job 정리 (§23, §25, Phase 3A §25): lease 가 만료된(또는 없는) RUNNING → RETRYABLE. 살아 있는 다른 인스턴스의 lease 는 건드리지 않는다. */
   async recoverJobs(q: Queryable = this.db): Promise<number> {
-    const r = await q.query("UPDATE simulation_jobs SET status = 'RETRYABLE', error = COALESCE(error, 'server restarted') WHERE status = 'RUNNING'");
+    const r = await q.query("UPDATE simulation_jobs SET status = 'RETRYABLE', owner = NULL, lease_expires_at = NULL, error = COALESCE(error, 'reclaimed: lease expired') WHERE status = 'RUNNING' AND (lease_expires_at IS NULL OR lease_expires_at < now())");
     return r.rowCount ?? 0;
   }
 }

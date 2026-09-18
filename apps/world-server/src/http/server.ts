@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { WebSocketServer } from "ws";
 import type { WorldApp } from "../app";
 import { attachRealtime } from "../realtime/ws";
+import { log } from "../log";
 
 type Handler = (req: IncomingMessage, res: ServerResponse, params: Record<string, string>, url: URL) => Promise<void>;
 interface Route { method: string; pattern: RegExp; keys: string[]; handler: Handler }
@@ -41,6 +42,23 @@ export function createHttpServer(app: WorldApp): { server: Server; wss: WebSocke
   add("GET", "/api/drops/current", async (_req, res) => { json(res, 200, await app.currentDrop()); });
   add("GET", "/api/drops/:id", async (_req, res, p) => { const d = await app.getDrop(p.id); if (!d) json(res, 404, { error: "no such drop" }); else json(res, 200, d); });
   add("GET", "/api/pancakes/:serial", async (_req, res, p) => { const x = await app.pancake(Number(p.serial)); if (!x) json(res, 404, { error: "no such pancake" }); else json(res, 200, x); });
+  // health (§27)
+  add("GET", "/health/live", async (_req, res) => { json(res, 200, { ok: true, instanceId: app.instanceId, uptimeSec: process.uptime() }); });
+  add("GET", "/health/ready", async (_req, res) => { const r = await app.readiness(); json(res, r.ready ? 200 : 503, { ...r, instanceId: app.instanceId, leader: app.leaderNow }); });
+  add("GET", "/api/metrics", async (_req, res) => { json(res, 200, app.metricsSnapshot()); });
+  add("GET", "/api/events", async (_req, res, _p, url) => { const after = Number(url.searchParams.get("after") ?? 0); const r = await app.eventLog.replay(after, Math.min(1000, Number(url.searchParams.get("limit") ?? 200))); if (!r) json(res, 410, { error: "events pruned; resync from snapshot", prunedUpTo: await app.eventLog.prunedUpTo() }); else json(res, 200, { events: r, lastEventId: await app.eventLog.latestId() }); });
+
+  // admin recovery (§14~§16): 인증은 이후 Phase, 지금은 secret 헤더
+  const admin = (handler: Handler): Handler => async (req, res, p, url) => {
+    if (!app.cfg.adminSecret || req.headers["x-admin-secret"] !== app.cfg.adminSecret) { json(res, 401, { error: "admin secret required" }); return; }
+    await handler(req, res, p, url);
+  };
+  add("GET", "/api/admin/drops/failed", admin(async (_req, res) => { json(res, 200, { drops: await app.failedDrops(), pipelineHalted: app.pipelineHalted, leader: app.leaderNow }); }));
+  add("POST", "/api/admin/drops/:id/retry", admin(async (_req, res, p) => { try { json(res, 200, { ok: true, ...(await app.retryDrop(p.id, "retry")) }); } catch (e) { json(res, 409, { error: String((e as Error).message) }); } }));
+  add("POST", "/api/admin/drops/:id/recover", admin(async (_req, res, p) => { try { json(res, 200, { ok: true, ...(await app.retryDrop(p.id, "recover")) }); } catch (e) { json(res, 409, { error: String((e as Error).message) }); } }));
+  add("POST", "/api/admin/drops/:id/abort", admin(async (_req, res, p) => { try { json(res, 200, { ok: true, ...(await app.abortDrop(p.id)) }); } catch (e) { json(res, 409, { error: String((e as Error).message) }); } }));
+  add("GET", "/api/admin/jobs/:id/attempts", admin(async (_req, res, p) => { json(res, 200, { attempts: (await app.db.query("SELECT * FROM simulation_attempts WHERE job_id = $1 ORDER BY attempt", [p.id])).rows }); }));
+
   if (app.cfg.devEndpoints) {
     add("POST", "/api/dev/purchase", async (req, res) => {
       const body = await readJson(req);
@@ -54,7 +72,7 @@ export function createHttpServer(app: WorldApp): { server: Server; wss: WebSocke
       const jobs = (await app.db.query<{ status: string; n: number }>("SELECT status, COUNT(*)::int AS n FROM simulation_jobs GROUP BY status")).rows;
       // world 는 메모리 상태(커밋 시점 기준). live 는 DB 의 현재 카운터 (구매 직후에도 정확)
       const live = (await app.db.query<{ latest_global_serial: number; committed_serial: number; version: number }>("SELECT latest_global_serial, committed_serial, version FROM world_state WHERE world_id = $1", [app.cfg.worldId])).rows[0];
-      json(res, 200, { world: app.store.worldState, live, currentDrop: cur, nextDrop: app.scheduler.after(app.scheduler.slotFor(cur.scheduled_at)), pending: app.pendingPancakes, worker: { alive: app.worker.alive, ready: app.worker.ready, crashes: app.worker.crashes, restarts: app.worker.restarts }, jobs, metrics: app.metricsSnapshot(), serverTime: app.clock().toISOString() });
+      json(res, 200, { world: app.store.worldState, live, instanceId: app.instanceId, leader: app.leaderNow, pipelineHalted: app.pipelineHalted, currentDrop: cur, nextDrop: app.scheduler.after(app.scheduler.slotFor(cur.scheduled_at)), pending: app.pendingPancakes, worker: { alive: app.worker.alive, ready: app.worker.ready, crashes: app.worker.crashes, restarts: app.worker.restarts }, jobs, metrics: app.metricsSnapshot(), serverTime: app.clock().toISOString() });
     });
     add("GET", "/api/dev/metrics", async (_req, res) => { json(res, 200, app.metricsSnapshot()); });
     add("POST", "/api/dev/tick", async (req, res) => { const b = await readJson(req); await app.tick(b.now ? new Date(String(b.now)) : undefined); json(res, 200, { ok: true }); });
@@ -70,7 +88,7 @@ export function createHttpServer(app: WorldApp): { server: Server; wss: WebSocke
       if (!m || r.method !== req.method) continue;
       const params: Record<string, string> = {};
       r.keys.forEach((k, i) => { params[k] = decodeURIComponent(m[i + 1]); });
-      try { await r.handler(req, res, params, url); } catch (e) { console.error("[http]", url.pathname, e); if (!res.headersSent) json(res, 500, { error: String((e as Error).message) }); }
+      try { await r.handler(req, res, params, url); } catch (e) { log.error("http.error", { path: url.pathname, error: String((e as Error).message) }); if (!res.headersSent) json(res, 500, { error: String((e as Error).message) }); }
       return;
     }
     json(res, 404, { error: "not found" });

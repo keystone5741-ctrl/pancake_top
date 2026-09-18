@@ -2,6 +2,7 @@ import { fork, type ChildProcess } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FromWorker, ResultMsg, SnapshotResultMsg, ToWorker } from "./protocol";
+export type { ResultMsg } from "./protocol";
 
 export class WorkerCrashError extends Error { constructor(readonly code: number | null, readonly signal: string | null) { super(`simulation worker exited (code ${code}, signal ${signal})`); } }
 
@@ -71,6 +72,8 @@ export class SimulationWorkerClient {
     this.initialised = true;
     return { spawned: m.spawned, heightUnits: m.heightUnits };
   }
+  /** 다음 job 에서 반드시 다시 INIT 하게 한다 (커밋 실패로 worker 의 표면이 DB 와 어긋났을 때) */
+  invalidate(): void { this.initialised = false; }
   /** 강제 재초기화 (capacity 회수 등) */
   async reinit(surface: Uint8Array | null): Promise<void> { this.initialised = false; await this.ensure(surface); }
 
