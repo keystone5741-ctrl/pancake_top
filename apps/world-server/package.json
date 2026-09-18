@@ -1,0 +1,32 @@
+{
+  "name": "world-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "migrate": "tsx src/db/migrate.ts",
+    "seed:synthetic": "tsx bench/seed-synthetic.ts",
+    "bench:load": "tsx bench/load.ts",
+    "bench:batch": "tsx bench/batch-policy.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.20.0",
+    "pancake-core": "workspace:*",
+    "pancake-physics": "workspace:*",
+    "pg": "^8.13.0",
+    "tower-engine": "workspace:*",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/pg": "^8.11.0",
+    "@types/ws": "^8.5.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
