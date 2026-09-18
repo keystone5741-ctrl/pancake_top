@@ -108,3 +108,54 @@ CREATE TABLE IF NOT EXISTS world_snapshots (
 -- 이전 스키마에서 올라오는 경우를 위한 추가 컬럼 (idempotent)
 ALTER TABLE chunks ADD COLUMN IF NOT EXISTS data BYTEA NOT NULL DEFAULT ''::bytea;
 ALTER TABLE chunks ADD COLUMN IF NOT EXISTS bounds JSONB;
+
+-- ---------------------------------------------------------------- Phase 3A (§10, §15~§17, §22, §25)
+ALTER TABLE chunks ADD COLUMN IF NOT EXISTS storage_key TEXT;           -- 객체 저장소 키 (immutable: chunks/…, mutable: staging/…)
+ALTER TABLE drops ADD COLUMN IF NOT EXISTS failure_reason TEXT;         -- WORKER_CRASH | SIMULATION_FAILED | STORAGE_FAILED | DB_COMMIT_FAILED | CORRUPTED_CHUNK | UNKNOWN
+ALTER TABLE drops ADD COLUMN IF NOT EXISTS failure_error TEXT;
+ALTER TABLE drops ADD COLUMN IF NOT EXISTS aborted_at TIMESTAMPTZ;
+ALTER TABLE simulation_jobs ADD COLUMN IF NOT EXISTS failure_reason TEXT;
+ALTER TABLE simulation_jobs ADD COLUMN IF NOT EXISTS owner TEXT;         -- job 을 claim 한 인스턴스
+ALTER TABLE simulation_jobs ADD COLUMN IF NOT EXISTS lease_expires_at TIMESTAMPTZ;
+ALTER TABLE simulation_jobs ADD COLUMN IF NOT EXISTS manual_retries INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS simulation_attempts (              -- 모든 시도 기록 (관리 retry 로도 지우지 않는다, §16)
+  attempt_id      BIGSERIAL PRIMARY KEY,
+  job_id          TEXT NOT NULL,
+  drop_id         TEXT NOT NULL,
+  attempt         INTEGER NOT NULL,
+  owner           TEXT,
+  status          TEXT NOT NULL,                              -- RUNNING | DONE | FAILED
+  failure_reason  TEXT,
+  error           TEXT,
+  started_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  finished_at     TIMESTAMPTZ,
+  duration_ms     DOUBLE PRECISION
+);
+CREATE INDEX IF NOT EXISTS simulation_attempts_job_idx ON simulation_attempts(job_id);
+
+CREATE TABLE IF NOT EXISTS world_events (                     -- durable event log (§17~§20)
+  event_id       BIGSERIAL PRIMARY KEY,
+  world_version  BIGINT NOT NULL,
+  type           TEXT NOT NULL,
+  drop_id        TEXT,
+  payload        JSONB NOT NULL,
+  retain         BOOLEAN NOT NULL DEFAULT false,               -- 감사 이벤트: retention 으로 지우지 않는다
+  instance_id    TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS world_events_created_idx ON world_events(created_at);
+CREATE INDEX IF NOT EXISTS world_events_type_idx ON world_events(type);
+
+CREATE TABLE IF NOT EXISTS leader_lease (                     -- 관측용 (실제 상호배제는 advisory lock)
+  world_id      TEXT PRIMARY KEY,
+  instance_id   TEXT NOT NULL,
+  acquired_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  heartbeat_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  term          BIGINT NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS world_events_prune (               -- retention 으로 지운 마지막 event_id (replay 가능 경계)
+  world_id      TEXT PRIMARY KEY,
+  pruned_up_to  BIGINT NOT NULL DEFAULT 0,
+  pruned_at     TIMESTAMPTZ
+);

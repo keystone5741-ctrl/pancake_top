@@ -33,15 +33,16 @@ describe("restart recovery", () => {
     const b = await app1.purchase({ quantity: 45, country: "JP" }).catch(() => null); // stopped 상태라 파이프라인은 돌지 않지만 할당은 된다
     expect(b).not.toBeNull();
     // 파일 손상 + DB 에 없는 잔여 파일 (chunk 저장 후 DB 커밋 전 crash 상황)
-    storage.files.set(0, new Uint8Array([1, 2, 3]));
-    storage.files.set(99, new Uint8Array([9]));
+    const key0 = m1.chunks[0].storageKey!;
+    await storage.put(key0, new Uint8Array([1, 2, 3]));
+    await storage.put("worlds/world/staging/000099-v9.chunk", new Uint8Array([9]));
     await db.query("UPDATE simulation_jobs SET status = 'RUNNING' WHERE job_id = (SELECT job_id FROM simulation_jobs ORDER BY created_at DESC LIMIT 1)");
 
     const app2 = new WorldApp({ db, storage, config: cfg, clock: () => now });
     await app2.start();
     expect(app2.store.metrics.recoveredFiles).toBeGreaterThanOrEqual(2);
-    expect(await storage.get(99)).toBeNull();
-    expect(sha256((await storage.get(0))!)).toBe(m1.chunks[0].checksum);
+    expect(await storage.get("worlds/world/staging/000099-v9.chunk")).toBeNull();
+    expect(sha256((await storage.get(key0))!)).toBe(m1.chunks[0].checksum);
     expect(app2.store.version).toBe(v1);
     const retryable = (await db.query<{ n: number }>("SELECT COUNT(*)::int AS n FROM simulation_jobs WHERE status = 'RETRYABLE'")).rows[0].n;
     expect(retryable).toBeGreaterThanOrEqual(1);

@@ -37,11 +37,11 @@ export class Db {
   }
   /** 테스트용: 모든 테이블 삭제 후 재생성 */
   async dropAll(): Promise<void> {
-    await this.pool.query("DROP TABLE IF EXISTS world_state, drops, orders, pancakes, chunks, country_counters, simulation_jobs, world_snapshots CASCADE");
+    await this.pool.query("DROP TABLE IF EXISTS world_state, drops, orders, pancakes, chunks, country_counters, simulation_jobs, world_snapshots, simulation_attempts, world_events, leader_lease, world_events_prune CASCADE");
   }
   /** 테스트용: 모든 테이블 비우기 */
   async reset(): Promise<void> {
-    await this.pool.query("TRUNCATE world_state, drops, orders, pancakes, chunks, country_counters, simulation_jobs, world_snapshots");
+    await this.pool.query("TRUNCATE world_state, drops, orders, pancakes, chunks, country_counters, simulation_jobs, world_snapshots, simulation_attempts, world_events, leader_lease, world_events_prune");
   }
   close(): Promise<void> { return this.pool.end(); }
 }

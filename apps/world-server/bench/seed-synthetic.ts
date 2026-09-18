@@ -3,12 +3,11 @@
  *   pnpm --filter world-server seed:synthetic -- --count 1000000 [--db postgres://...] [--data-dir ./data] [--chunk-size 10000]
  * 기존 world 데이터는 모두 지운다(TRUNCATE). 실제 서비스 탑은 항상 서버 물리 결과에서 온다.
  */
-import { join } from "node:path";
 import { encodeCountry } from "pancake-core";
 import { DEFAULT_TOWER_CONFIG, buildChunk, encodeChunk, generateSyntheticTower } from "tower-engine";
 import { loadConfig } from "../src/config";
 import { Db } from "../src/db/db";
-import { LocalChunkStorage } from "../src/world/chunkStorage";
+import { chunkKey, createChunkStorage, stagingKey } from "../src/world/chunkStorage";
 import { sha256 } from "../src/world/worldStore";
 
 const argv = process.argv.slice(2);
@@ -21,8 +20,8 @@ const t0 = performance.now();
 const db = new Db(cfg.databaseUrl);
 await db.migrate();
 await db.reset();
-const storage = new LocalChunkStorage(join(cfg.dataDir, "tower", "chunks"));
-for (const id of await storage.list()) await storage.remove(id);
+const storage = createChunkStorage(cfg);
+for (const key of await storage.list(`worlds/${cfg.worldId}/`)) await storage.delete(key);
 
 const towerCfg = { ...DEFAULT_TOWER_CONFIG, chunkSize: cfg.chunkSize };
 console.log(`generating ${count} synthetic pancakes (chunk ${cfg.chunkSize})…`);
@@ -46,10 +45,12 @@ for (let id = 0; id < nChunks; id++) {
   const bytes = new Uint8Array(encodeChunk(chunk, towerCfg));
   const checksum = sha256(bytes);
   bytesTotal += bytes.byteLength;
-  await storage.put(id, bytes);
+  const finalized = chunk.count === cfg.chunkSize;
+  const key = finalized ? chunkKey(cfg.worldId, id, 1) : stagingKey(cfg.worldId, id, 1);
+  await storage.put(key, bytes, { sha256: checksum });
   await db.query(
-    "INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1,$10,$11)",
-    [id, chunk.startSerial + 1, chunk.endSerial + 1, chunk.count, chunk.minHeight, chunk.maxHeight, checksum, bytes.byteLength, chunk.count === cfg.chunkSize, Buffer.from(bytes), JSON.stringify(chunk.bounds)],
+    "INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds, storage_key) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1,$10,$11,$12)",
+    [id, chunk.startSerial + 1, chunk.endSerial + 1, chunk.count, chunk.minHeight, chunk.maxHeight, checksum, bytes.byteLength, finalized, Buffer.from(bytes), JSON.stringify(chunk.bounds), key],
   );
   if (id % 10 === 9 || id === nChunks - 1) process.stdout.write(`  chunks ${id + 1}/${nChunks}\r`);
 }

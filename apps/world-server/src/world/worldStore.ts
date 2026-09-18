@@ -1,15 +1,20 @@
 import { createHash } from "node:crypto";
 import { decodeTower, encodeTower, type TowerData } from "pancake-physics";
 import { emptyTransformSet, encodeCountry, worldUnitsToMeters, type PancakeTransformSet } from "pancake-core";
-import { DEFAULT_TOWER_CONFIG, buildChunk, decodeChunk, encodeChunk, type TowerChunk, type TowerConfig } from "tower-engine";
+import { DEFAULT_TOWER_CONFIG, decodeChunk, type TowerChunk, type TowerConfig } from "tower-engine";
 import type { ServerConfig } from "../config";
 import type { Db, Queryable } from "../db/db";
-import type { ChunkStorage } from "./chunkStorage";
+import { chunkKey, isStagingKey, md5Hex, stagingKey, worldPrefix, type ChunkStorage } from "./chunkStorage";
+import { EncodeService } from "./encodeWorker";
+
+/** Drop/job 실패 원인 (Phase 3A §15) */
+export type FailureReason = "WORKER_CRASH" | "SIMULATION_FAILED" | "STORAGE_FAILED" | "DB_COMMIT_FAILED" | "CORRUPTED_CHUNK" | "UNKNOWN";
+export class CommitError extends Error { constructor(readonly reason: FailureReason, message: string, readonly cause?: unknown) { super(message); } }
 
 export interface WorldStateRow { world_id: string; latest_global_serial: number; committed_serial: number; height_meters: number; height_units: number; latest_chunk_id: number; current_drop_id: string | null; version: number; updated_at: Date }
-export interface ChunkRow { chunk_id: number; start_serial: number; end_serial: number; count: number; min_height: number; max_height: number; checksum: string; byte_length: number; finalized: boolean; version: number; bounds: { min: [number, number, number]; max: [number, number, number] } | null }
+export interface ChunkRow { chunk_id: number; start_serial: number; end_serial: number; count: number; min_height: number; max_height: number; checksum: string; byte_length: number; finalized: boolean; version: number; bounds: { min: [number, number, number]; max: [number, number, number] } | null; storage_key: string | null }
 
-export interface ManifestChunk { id: number; startSerial: number; endSerial: number; count: number; minHeight: number; maxHeight: number; bounds: { min: [number, number, number]; max: [number, number, number] }; checksum: string; byteLength: number; finalized: boolean; url: string }
+export interface ManifestChunk { id: number; startSerial: number; endSerial: number; count: number; minHeight: number; maxHeight: number; bounds: { min: [number, number, number]; max: [number, number, number] }; checksum: string; sha256: string; byteLength: number; size: number; finalized: boolean; url: string; storageKey: string | null }
 export interface Manifest { version: number; totalPancakes: number; allocatedPancakes: number; heightMeters: number; heightUnits: number; chunkSize: number; diameter: number; thickness: number; unitCm: number; chunks: ManifestChunk[] }
 
 export interface CommitInput { jobId: string; dropId: string; startSerial: number; endSerial: number; finalTransforms: TowerData; heightUnits: number; countries: Uint16Array }
@@ -28,14 +33,20 @@ export class WorldStore {
   /** 현재 mutable chunk 의 내용 (마지막 chunk). finalized 되면 새 set 을 시작한다. */
   private current: PancakeTransformSet | null = null;
   private currentId = -1;
-  metrics = { chunkWriteMs: 0, chunkWrites: 0, commitMs: 0, commits: 0, manifestMs: 0, snapshots: 0, recoveredFiles: 0 };
+  metrics = { chunkWriteMs: 0, chunkWrites: 0, commitMs: 0, commits: 0, manifestMs: 0, snapshots: 0, recoveredFiles: 0, encodeMs: 0, storageUploadMs: 0, storageVerifyMs: 0, dbTxMs: 0, promotions: 0 };
+  readonly encoder: EncodeService;
+  /** 현재 mutable chunk 의 staging 키 (다음 커밋 뒤 삭제) */
+  private currentKey: string | null = null;
   /** commit / refresh / snapshot 직렬화. refresh 가 커밋 도중 끼어들면 stale 한 world_state·current chunk 로 덮어써 다음 커밋이 어긋난다 (batch 벤치에서 실제 발생). */
   private lock: Promise<unknown> = Promise.resolve();
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const run = this.lock.then(fn, fn); this.lock = run.catch(() => undefined); return run; }
 
   constructor(readonly db: Db, readonly storage: ChunkStorage, readonly cfg: ServerConfig) {
     this.towerConfig = { ...DEFAULT_TOWER_CONFIG, chunkSize: cfg.chunkSize };
+    this.encoder = new EncodeService(cfg.pipelineOverlap);
   }
+  async close(): Promise<void> { await this.encoder.stop(); }
+  keyFor(id: number, version: number, finalized: boolean): string { return finalized ? chunkKey(this.cfg.worldId, id, version) : stagingKey(this.cfg.worldId, id, version); }
 
   get worldState(): WorldStateRow { return this.state; }
   get version(): number { return this.state.version; }
@@ -45,31 +56,38 @@ export class WorldStore {
   async load(): Promise<void> {
     await this.db.query("INSERT INTO world_state (world_id) VALUES ($1) ON CONFLICT (world_id) DO NOTHING", [this.cfg.worldId]);
     this.state = (await this.db.query<WorldStateRow>("SELECT * FROM world_state WHERE world_id = $1", [this.cfg.worldId])).rows[0];
-    await this.reconcileChunkFiles();
+    await this.reconcileStorage();
     await this.loadCurrentChunk();
   }
 
-  /** 파일 저장소를 DB 와 일치시킨다 (§37: chunk 저장 후 DB 커밋 전 crash 등). */
-  private async reconcileChunkFiles(): Promise<void> {
-    const rows = (await this.db.query<ChunkRow & { data: Buffer }>("SELECT chunk_id, checksum, data FROM chunks ORDER BY chunk_id")).rows;
-    const known = new Set<number>();
+  /**
+   * 객체 저장소를 DB 와 일치시킨다 (§37, Phase 3A §11): 없거나 크기/sha 가 다른 객체는 DB bytes 로 다시 쓰고,
+   * finalized 인데 staging 키인 것은 승격하고, DB 가 참조하지 않는 객체는 지운다.
+   */
+  private async reconcileStorage(): Promise<void> {
+    const rows = (await this.db.query<ChunkRow & { data: Buffer }>("SELECT chunk_id, checksum, byte_length, finalized, version, storage_key, data FROM chunks ORDER BY chunk_id")).rows;
+    const referenced = new Set<string>();
     for (const r of rows) {
-      known.add(r.chunk_id);
-      const file = await this.storage.get(r.chunk_id);
-      if (!file || sha256(file) !== r.checksum) { await this.storage.put(r.chunk_id, new Uint8Array(r.data)); this.metrics.recoveredFiles++; }
+      let key = r.storage_key ?? this.keyFor(r.chunk_id, r.version, r.finalized);
+      const info = await this.storage.head(key);
+      const ok = info && info.size === r.byte_length && (!info.sha256 || info.sha256 === r.checksum);
+      if (!ok) { await this.storage.put(key, new Uint8Array(r.data), { sha256: r.checksum }); this.metrics.recoveredFiles++; }
+      if (r.finalized && isStagingKey(key)) { const target = chunkKey(this.cfg.worldId, r.chunk_id, r.version); await this.storage.copy(key, target); await this.storage.delete(key); key = target; this.metrics.promotions++; }
+      if (key !== r.storage_key) await this.db.query("UPDATE chunks SET storage_key = $2 WHERE chunk_id = $1", [r.chunk_id, key]);
+      referenced.add(key);
     }
-    // DB 에 없는 파일(커밋 전 crash 로 남은 것)은 제거
-    for (const id of await this.storage.list()) if (!known.has(id)) { await this.storage.remove(id); this.metrics.recoveredFiles++; }
+    for (const key of await this.storage.list(worldPrefix(this.cfg.worldId))) if (!referenced.has(key)) { await this.storage.delete(key); this.metrics.recoveredFiles++; }
   }
 
   private async loadCurrentChunk(): Promise<void> {
     const id = this.state.latest_chunk_id;
     if (id < 0) { this.current = null; this.currentId = -1; return; }
-    const row = (await this.db.query<{ data: Buffer; finalized: boolean }>("SELECT data, finalized FROM chunks WHERE chunk_id = $1", [id])).rows[0];
+    const row = (await this.db.query<{ data: Buffer; finalized: boolean; storage_key: string | null }>("SELECT data, finalized, storage_key FROM chunks WHERE chunk_id = $1", [id])).rows[0];
     const { chunk } = decodeChunk(bufToArrayBuffer(row.data));
-    if (row.finalized) { this.current = null; this.currentId = id; return; }
+    if (row.finalized) { this.current = null; this.currentId = id; this.currentKey = null; return; }
     this.current = chunkToSet(chunk, this.towerConfig);
     this.currentId = id;
+    this.currentKey = row.storage_key;
   }
 
   // ---------------------------------------------------------------- surface for the worker
@@ -90,8 +108,8 @@ export class WorldStore {
   }
 
   // ---------------------------------------------------------------- commit
-  commit(input: CommitInput): Promise<{ version: number; chunkIds: number[] }> { return this.serialized(() => this.commitLocked(input)); }
-  private async commitLocked(input: CommitInput): Promise<{ version: number; chunkIds: number[] }> {
+  commit(input: CommitInput): Promise<{ version: number; chunkIds: number[]; storageKeys: string[] }> { return this.serialized(() => this.commitLocked(input)); }
+  private async commitLocked(input: CommitInput): Promise<{ version: number; chunkIds: number[]; storageKeys: string[] }> {
     const t0 = performance.now();
     if (input.startSerial !== this.state.committed_serial + 1) throw new Error(`commit out of order: expected ${this.state.committed_serial + 1}, got ${input.startSerial}`);
     const cs = this.towerConfig.chunkSize;
@@ -109,47 +127,69 @@ export class WorldStore {
       touched.push({ id: this.currentId, set: this.current, finalized });
       if (finalized) this.current = null;
     }
-    // 2) encode + 파일 쓰기
-    const encoded: { id: number; bytes: Uint8Array; chunk: TowerChunk; checksum: string; finalized: boolean }[] = [];
-    const tw = performance.now();
-    for (const x of touched) {
-      const chunk = buildChunk(x.set, x.id, 0, x.set.count, this.towerConfig);
-      const bytes = new Uint8Array(encodeChunk(chunk, this.towerConfig));
-      const checksum = sha256(bytes);
-      await this.storage.put(x.id, bytes);
-      encoded.push({ id: x.id, bytes, chunk, checksum, finalized: x.finalized });
-    }
-    this.metrics.chunkWriteMs += performance.now() - tw; this.metrics.chunkWrites += encoded.length;
-    // 3) DB 트랜잭션 (version+1)
+    // 2) encode + checksum (worker thread) → staging 키에 쓰기 → verify (Phase 3A §11 순서)
     const newVersion = this.state.version + 1;
+    const te = performance.now();
+    let encoded: { id: number; bytes: Uint8Array; chunk: TowerChunk; checksum: string; finalized: boolean; key: string }[];
+    try {
+      encoded = await Promise.all(touched.map(async (x) => { const e = await this.encoder.encode({ id: x.id, set: x.set, cfg: this.towerConfig }); return { ...e, finalized: x.finalized, key: stagingKey(this.cfg.worldId, x.id, newVersion) }; }));
+    } catch (e) { throw new CommitError("UNKNOWN", `chunk encode failed: ${String(e)}`, e); }
+    this.metrics.encodeMs += performance.now() - te;
+    const tw = performance.now();
+    try { for (const e of encoded) await this.storage.put(e.key, e.bytes, { sha256: e.checksum }); }
+    catch (e) { throw new CommitError("STORAGE_FAILED", `chunk upload failed: ${String(e)}`, e); }
+    this.metrics.storageUploadMs += performance.now() - tw; this.metrics.chunkWriteMs += performance.now() - tw; this.metrics.chunkWrites += encoded.length;
+    const tv = performance.now();
+    for (const e of encoded) {
+      let info; try { info = await this.storage.head(e.key); } catch (err) { throw new CommitError("STORAGE_FAILED", `chunk verify failed: ${String(err)}`, err); }
+      if (!info) throw new CommitError("STORAGE_FAILED", `chunk ${e.key} missing after upload`);
+      if (info.size !== e.bytes.byteLength || (info.sha256 && info.sha256 !== e.checksum) || (info.etag && !info.etag.includes("-") && info.etag !== md5Hex(e.bytes))) throw new CommitError("CORRUPTED_CHUNK", `chunk ${e.key} verify mismatch (size ${info.size}/${e.bytes.byteLength}, sha ${info.sha256 ?? "-"}, etag ${info.etag ?? "-"})`);
+    }
+    this.metrics.storageVerifyMs += performance.now() - tv;
+    // 3) DB 트랜잭션 (version+1). 저장소 쓰기가 실패했으면 여기 오지 않는다 (§11: version 이 먼저 오르지 않는다).
     const heightUnits = Math.max(this.state.height_units, input.heightUnits);
     const heightMeters = worldUnitsToMeters(heightUnits, this.towerConfig.unitCm);
     const latestChunk = encoded[encoded.length - 1].id;
-    await this.db.tx(async (c) => {
-      // 락 순서: purchase 트랜잭션(serial.ts)과 같이 world_state 행을 먼저 잡는다. 안 그러면
-      // purchase(world_state → drops) 와 commit(drops → world_state) 이 교착한다 (batch 벤치에서 실제 발생).
-      const cur = await c.query<{ version: number }>("SELECT version FROM world_state WHERE world_id = $1 FOR UPDATE", [this.cfg.worldId]);
-      if (!cur.rows.length || cur.rows[0].version !== this.state.version) throw new Error("world version conflict");
-      for (const e of encoded) {
-        await c.query(
-          `INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, now())
-           ON CONFLICT (chunk_id) DO UPDATE SET start_serial = EXCLUDED.start_serial, end_serial = EXCLUDED.end_serial, count = EXCLUDED.count, min_height = EXCLUDED.min_height, max_height = EXCLUDED.max_height, checksum = EXCLUDED.checksum, byte_length = EXCLUDED.byte_length, finalized = EXCLUDED.finalized, version = EXCLUDED.version, data = EXCLUDED.data, bounds = EXCLUDED.bounds, updated_at = now()`,
-          [e.id, e.chunk.startSerial + 1, e.chunk.endSerial + 1, e.chunk.count, e.chunk.minHeight, e.chunk.maxHeight, e.checksum, e.bytes.byteLength, e.finalized, newVersion, Buffer.from(e.bytes), JSON.stringify(e.chunk.bounds)],
+    const prevKey = this.currentKey;
+    const tdb = performance.now();
+    try {
+      await this.db.tx(async (c) => {
+        // 락 순서: purchase 트랜잭션(serial.ts)과 같이 world_state 행을 먼저 잡는다. 안 그러면
+        // purchase(world_state → drops) 와 commit(drops → world_state) 이 교착한다 (batch 벤치에서 실제 발생).
+        const cur = await c.query<{ version: number }>("SELECT version FROM world_state WHERE world_id = $1 FOR UPDATE", [this.cfg.worldId]);
+        if (!cur.rows.length || cur.rows[0].version !== this.state.version) throw new Error("world version conflict");
+        for (const e of encoded) {
+          await c.query(
+            `INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds, storage_key, updated_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, now())
+             ON CONFLICT (chunk_id) DO UPDATE SET start_serial = EXCLUDED.start_serial, end_serial = EXCLUDED.end_serial, count = EXCLUDED.count, min_height = EXCLUDED.min_height, max_height = EXCLUDED.max_height, checksum = EXCLUDED.checksum, byte_length = EXCLUDED.byte_length, finalized = EXCLUDED.finalized, version = EXCLUDED.version, data = EXCLUDED.data, bounds = EXCLUDED.bounds, storage_key = EXCLUDED.storage_key, updated_at = now()`,
+            [e.id, e.chunk.startSerial + 1, e.chunk.endSerial + 1, e.chunk.count, e.chunk.minHeight, e.chunk.maxHeight, e.checksum, e.bytes.byteLength, e.finalized, newVersion, Buffer.from(e.bytes), JSON.stringify(e.chunk.bounds), e.key],
+          );
+        }
+        await c.query("UPDATE pancakes SET committed_at = now() WHERE global_serial BETWEEN $1 AND $2", [input.startSerial, input.endSerial]);
+        await c.query("UPDATE drops SET height_after = $2, simulation_started_at = COALESCE(simulation_started_at, now()) WHERE drop_id = $1", [input.dropId, heightMeters]);
+        await c.query("UPDATE simulation_jobs SET status = 'DONE', finished_at = now(), owner = NULL, lease_expires_at = NULL WHERE job_id = $1", [input.jobId]);
+        const upd = await c.query<WorldStateRow>(
+          "UPDATE world_state SET committed_serial = $2, height_units = $3, height_meters = $4, latest_chunk_id = $5, version = $6, updated_at = now() WHERE world_id = $1 AND version = $7 RETURNING *",
+          [this.cfg.worldId, input.endSerial, heightUnits, heightMeters, latestChunk, newVersion, this.state.version],
         );
-      }
-      await c.query("UPDATE pancakes SET committed_at = now() WHERE global_serial BETWEEN $1 AND $2", [input.startSerial, input.endSerial]);
-      await c.query("UPDATE drops SET height_after = $2, simulation_started_at = COALESCE(simulation_started_at, now()) WHERE drop_id = $1", [input.dropId, heightMeters]);
-      await c.query("UPDATE simulation_jobs SET status = 'DONE', finished_at = now() WHERE job_id = $1", [input.jobId]);
-      const upd = await c.query<WorldStateRow>(
-        "UPDATE world_state SET committed_serial = $2, height_units = $3, height_meters = $4, latest_chunk_id = $5, version = $6, updated_at = now() WHERE world_id = $1 AND version = $7 RETURNING *",
-        [this.cfg.worldId, input.endSerial, heightUnits, heightMeters, latestChunk, newVersion, this.state.version],
-      );
-      if (!upd.rows.length) throw new Error("world version conflict");
-      this.state = upd.rows[0];
-    });
+        if (!upd.rows.length) throw new Error("world version conflict");
+        this.state = upd.rows[0];
+      });
+    } catch (e) { throw new CommitError("DB_COMMIT_FAILED", `world commit failed: ${String(e)}`, e); }
+    this.metrics.dbTxMs += performance.now() - tdb;
+    // 4) 커밋 뒤 정리 (실패해도 world 는 이미 일관됨; startup reconcile 이 마저 한다): finalized 승격, 이전 staging 삭제
+    this.currentKey = null;
+    for (const e of encoded) {
+      if (e.finalized) {
+        const target = chunkKey(this.cfg.worldId, e.id, newVersion);
+        try { await this.storage.copy(e.key, target); await this.db.query("UPDATE chunks SET storage_key = $2 WHERE chunk_id = $1 AND storage_key = $3", [e.id, target, e.key]); await this.storage.delete(e.key); this.metrics.promotions++; }
+        catch (err) { console.error("[store] promotion deferred", e.key, String(err)); }
+      } else this.currentKey = e.key;
+    }
+    if (prevKey && !encoded.some((e) => e.key === prevKey)) { try { await this.storage.delete(prevKey); } catch { /* reconcile 이 정리 */ } }
     this.metrics.commitMs += performance.now() - t0; this.metrics.commits++;
-    return { version: newVersion, chunkIds: encoded.map((e) => e.id) };
+    return { version: newVersion, chunkIds: encoded.map((e) => e.id), storageKeys: encoded.map((e) => e.finalized ? chunkKey(this.cfg.worldId, e.id, newVersion) : e.key) };
   }
 
   /** 테스트/복구용: DB 상태를 다시 읽는다 */
@@ -158,12 +198,12 @@ export class WorldStore {
   // ---------------------------------------------------------------- manifest
   async manifest(baseUrl = ""): Promise<Manifest> {
     const t0 = performance.now();
-    const rows = (await this.db.query<ChunkRow>("SELECT chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, bounds FROM chunks ORDER BY chunk_id")).rows;
+    const rows = (await this.db.query<ChunkRow>("SELECT chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, bounds, storage_key FROM chunks ORDER BY chunk_id")).rows;
     const m: Manifest = {
       version: this.state.version, totalPancakes: this.state.committed_serial, allocatedPancakes: this.state.latest_global_serial,
       heightMeters: this.state.height_meters, heightUnits: this.state.height_units, chunkSize: this.towerConfig.chunkSize,
       diameter: this.towerConfig.diameter, thickness: this.towerConfig.thickness, unitCm: this.towerConfig.unitCm,
-      chunks: rows.map((r) => ({ id: r.chunk_id, startSerial: r.start_serial, endSerial: r.end_serial, count: r.count, minHeight: r.min_height, maxHeight: r.max_height, bounds: r.bounds ?? { min: [-1, r.min_height, -1], max: [1, r.max_height, 1] }, checksum: r.checksum, byteLength: r.byte_length, finalized: r.finalized, url: `${baseUrl}/api/world/chunks/${r.chunk_id}?c=${r.checksum.slice(0, 16)}` })),
+      chunks: rows.map((r) => ({ id: r.chunk_id, startSerial: r.start_serial, endSerial: r.end_serial, count: r.count, minHeight: r.min_height, maxHeight: r.max_height, bounds: r.bounds ?? { min: [-1, r.min_height, -1], max: [1, r.max_height, 1] }, checksum: r.checksum, sha256: r.checksum, byteLength: r.byte_length, size: r.byte_length, finalized: r.finalized, url: `${baseUrl}/api/world/chunks/${r.chunk_id}?c=${r.checksum.slice(0, 16)}`, storageKey: r.storage_key })),
     };
     this.metrics.manifestMs = performance.now() - t0;
     return m;

@@ -48,7 +48,8 @@ describe("continuous pipeline + persistence", () => {
     let expectStart = 1;
     for (const c of m.chunks) {
       expect(c.startSerial).toBe(expectStart); expectStart = c.endSerial + 1;
-      const bytes = await storage.get(c.id);
+      expect(c.storageKey).toMatch(c.finalized ? /\/chunks\/\d{6}-v\d+\.chunk$/ : /\/staging\/\d{6}-v\d+\.chunk$/);
+      const bytes = await storage.get(c.storageKey!);
       expect(bytes).not.toBeNull();
       expect(sha256(bytes!)).toBe(c.checksum);
       const dec = decodeChunk(bytes!.buffer.slice(bytes!.byteOffset, bytes!.byteOffset + bytes!.byteLength) as ArrayBuffer).chunk;
@@ -63,7 +64,7 @@ describe("continuous pipeline + persistence", () => {
     expect(p).toMatchObject({ globalSerial: total, chunkId: Math.floor((total - 1) / 250), instanceIndex: (total - 1) % 250, committed: true });
     expect(p!.height as number).toBeGreaterThan(0);
     // 국가 attribute 가 chunk 에 들어갔는지
-    const first = decodeChunk(storage.files.get(0)!.buffer as ArrayBuffer).chunk;
+    const first = decodeChunk(storage.files.get(m.chunks[0].storageKey!)!.data.buffer as ArrayBuffer).chunk;
     const kr = (await db.query<{ instance_index: number }>("SELECT instance_index FROM pancakes WHERE country = 'KR' AND chunk_id = 0 LIMIT 1")).rows[0];
     expect(first.attributes.country[kr.instance_index]).toBe(10 * 26 + 17); // "KR"
     // 이벤트: queueUpdated(throttle) 와 world.updated
@@ -128,6 +129,9 @@ describe("continuous pipeline + persistence", () => {
     expect(app.store.worldState.committed_serial).toBe(r.endSerial);
     expect(app.metrics.jobRetries).toBeGreaterThanOrEqual(2);
     const m = await app.store.manifest();
-    for (const c of m.chunks) expect(sha256((await storage.get(c.id))!)).toBe(c.checksum);
+    for (const c of m.chunks) expect(sha256((await storage.get(c.storageKey!))!)).toBe(c.checksum);
+    // 참조되지 않는 staging 객체가 남지 않는다
+    const keys = await storage.list("worlds/");
+    expect(keys.sort()).toEqual(m.chunks.map((c) => c.storageKey!).sort());
   });
 });

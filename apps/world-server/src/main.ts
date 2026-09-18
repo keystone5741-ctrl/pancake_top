@@ -2,12 +2,11 @@ import { WorldApp } from "./app";
 import { loadConfig } from "./config";
 import { Db } from "./db/db";
 import { createHttpServer } from "./http/server";
-import { LocalChunkStorage } from "./world/chunkStorage";
-import { join } from "node:path";
+import { createChunkStorage } from "./world/chunkStorage";
 
 const cfg = loadConfig();
 const db = new Db(cfg.databaseUrl);
-const app = new WorldApp({ db, storage: new LocalChunkStorage(join(cfg.dataDir, "tower", "chunks")), config: cfg });
+const app = new WorldApp({ db, storage: createChunkStorage(cfg), config: cfg });
 await app.start();
 const { server } = createHttpServer(app);
 server.listen(cfg.port, () => {
