@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T02:30:34.524Z",
+  "generatedAt": "2026-09-18T02:33:25.080Z",
   "results": {
     "structural-100000": {
       "count": 100000,
@@ -10,106 +10,26 @@
       "renderedInstances": 10000,
       "lodCounts": [
         193,
-        1217,
-        8590
+        1219,
+        8588
       ],
       "estimatedGpuInstanceMB": 2.17437744140625,
       "towerHeightM": 999.6384744475837,
       "cameraAltitudeM": 999.8384744475837,
       "quality": "performance",
       "farView": "silhouette",
-      "fps": 0.4041057140547815,
-      "frameMsP95": 1192.7999999998137,
-      "frameMsP99": 1192.7999999998137,
+      "fps": 0.5558643690939411,
+      "frameMsP95": 830.5,
+      "frameMsP99": 830.5,
       "drawCalls": 4,
-      "triangles": 257520,
+      "triangles": 257536,
       "lodTriangles": [
         64,
         32,
         24
       ],
-      "loadMs": 598.2000000001863,
-      "jsHeapMB": 43910071,
-      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
-      "viewport": [
-        1280,
-        800
-      ],
-      "dpr": 1,
-      "selected": null,
-      "drop": null,
-      "replay": null
-    },
-    "structural-500000": {
-      "count": 500000,
-      "chunks": 50,
-      "loadedChunks": 48,
-      "gpuChunks": 47,
-      "visibleChunks": 47,
-      "renderedInstances": 470000,
-      "lodCounts": [
-        422,
-        2442,
-        467136
-      ],
-      "estimatedGpuInstanceMB": 102.19573974609375,
-      "towerHeightM": 4999.6235601926155,
-      "cameraAltitudeM": 4672.163596506442,
-      "quality": "performance",
-      "farView": "silhouette",
-      "fps": 1.1630611770181631,
-      "frameMsP95": 396.5,
-      "frameMsP99": 396.5,
-      "drawCalls": 51,
-      "triangles": 11316480,
-      "lodTriangles": [
-        64,
-        32,
-        24
-      ],
-      "loadMs": 689.2000000001863,
-      "jsHeapMB": 157020927,
-      "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
-      "viewport": [
-        1280,
-        800
-      ],
-      "dpr": 1,
-      "selected": null,
-      "drop": null,
-      "replay": null
-    },
-    "structural-1000000": {
-      "count": 1000000,
-      "chunks": 100,
-      "loadedChunks": 1,
-      "gpuChunks": 1,
-      "visibleChunks": 1,
-      "renderedInstances": 10000,
-      "lodCounts": [
-        190,
-        1222,
-        8588
-      ],
-      "estimatedGpuInstanceMB": 2.17437744140625,
-      "towerHeightM": 9999.506067696724,
-      "cameraAltitudeM": 9999.706067696723,
-      "quality": "performance",
-      "farView": "silhouette",
-      "fps": 0.10346718538215705,
-      "frameMsP95": 1146.5,
-      "frameMsP99": 1146.5,
-      "drawCalls": 3,
-      "triangles": 257376,
-      "lodTriangles": [
-        64,
-        32,
-        24
-      ],
-      "loadMs": 650,
-      "jsHeapMB": 304435127,
+      "loadMs": 766.2000000001863,
+      "jsHeapMB": 42234632,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -138,9 +58,9 @@
       "cameraAltitudeM": 543.148857421875,
       "quality": "standard",
       "farView": "silhouette",
-      "fps": 0.4496200710399524,
-      "frameMsP95": 1335.2999999998137,
-      "frameMsP99": 1335.2999999998137,
+      "fps": 0.38872691933916426,
+      "frameMsP95": 1068.300000000745,
+      "frameMsP99": 1068.300000000745,
       "drawCalls": 6,
       "triangles": 662304,
       "lodTriangles": [
@@ -148,8 +68,8 @@
         40,
         24
       ],
-      "loadMs": 743.7000000001863,
-      "jsHeapMB": 35200273,
+      "loadMs": 664.6000000005588,
+      "jsHeapMB": 36972032,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -182,9 +102,9 @@
       "cameraAltitudeM": 0.8,
       "quality": "performance",
       "farView": "silhouette",
-      "fps": 5.08582326764145,
-      "frameMsP95": 445,
-      "frameMsP99": 445,
+      "fps": 6.487608667443612,
+      "frameMsP95": 332.20000000018626,
+      "frameMsP99": 332.20000000018626,
       "drawCalls": 5,
       "triangles": 258696,
       "lodTriangles": [
@@ -192,8 +112,8 @@
         32,
         24
       ],
-      "loadMs": 604.0999999996275,
-      "jsHeapMB": 23414267,
+      "loadMs": 597.3999999994412,
+      "jsHeapMB": 22221415,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -222,9 +142,9 @@
       "cameraAltitudeM": 746.3483742667449,
       "quality": "performance",
       "farView": "pure",
-      "fps": 0.3350644999162339,
-      "frameMsP95": 850,
-      "frameMsP99": 850,
+      "fps": 0.5363368195226602,
+      "frameMsP95": 441.29999999981374,
+      "frameMsP99": 441.29999999981374,
       "drawCalls": 12,
       "triangles": 2400064,
       "lodTriangles": [
@@ -232,8 +152,8 @@
         32,
         24
       ],
-      "loadMs": 549.8999999999069,
-      "jsHeapMB": 43929339,
+      "loadMs": 605.2000000001863,
+      "jsHeapMB": 42183514,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -259,12 +179,12 @@
       ],
       "estimatedGpuInstanceMB": 21.7437744140625,
       "towerHeightM": 999.6384744475837,
-      "cameraAltitudeM": 746.3483742667449,
+      "cameraAltitudeM": 746.2370184976859,
       "quality": "performance",
       "farView": "silhouette",
-      "fps": 0.4225292601512322,
-      "frameMsP95": 468.10000000009313,
-      "frameMsP99": 468.10000000009313,
+      "fps": 3.2168132103808693,
+      "frameMsP95": 592.7999999998137,
+      "frameMsP99": 592.7999999998137,
       "drawCalls": 13,
       "triangles": 2400064,
       "lodTriangles": [
@@ -272,8 +192,8 @@
         32,
         24
       ],
-      "loadMs": 569.2999999998137,
-      "jsHeapMB": 43790949,
+      "loadMs": 736.6000000005588,
+      "jsHeapMB": 42568654,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -302,9 +222,9 @@
       "cameraAltitudeM": 746.3483742667449,
       "quality": "performance",
       "farView": "atmospheric",
-      "fps": 0.48046893768311427,
-      "frameMsP95": 391.79999999981374,
-      "frameMsP99": 391.79999999981374,
+      "fps": 0.42973785990545765,
+      "frameMsP95": 560.9000000003725,
+      "frameMsP99": 560.9000000003725,
       "drawCalls": 16,
       "triangles": 2400260,
       "lodTriangles": [
@@ -312,8 +232,8 @@
         32,
         24
       ],
-      "loadMs": 616,
-      "jsHeapMB": 43007315,
+      "loadMs": 729.5,
+      "jsHeapMB": 43520687,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -333,27 +253,27 @@
       "visibleChunks": 2,
       "renderedInstances": 20000,
       "lodCounts": [
-        410,
-        2441,
-        17149
+        0,
+        0,
+        20000
       ],
       "estimatedGpuInstanceMB": 4.3487548828125,
       "towerHeightM": 999.6384744475837,
-      "cameraAltitudeM": 500.15,
+      "cameraAltitudeM": 512.7192372237919,
       "quality": "performance",
       "farView": "pure",
-      "fps": 0.6672894701721193,
-      "frameMsP95": 690.1000000000931,
-      "frameMsP99": 690.1000000000931,
-      "drawCalls": 7,
-      "triangles": 515992,
+      "fps": 6.902263942578489,
+      "frameMsP95": 504.79999999981374,
+      "frameMsP99": 504.79999999981374,
+      "drawCalls": 3,
+      "triangles": 480064,
       "lodTriangles": [
         64,
         32,
         24
       ],
-      "loadMs": 567.3000000002794,
-      "jsHeapMB": 34812125,
+      "loadMs": 746.8999999994412,
+      "jsHeapMB": 28543593,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -373,27 +293,27 @@
       "visibleChunks": 2,
       "renderedInstances": 20000,
       "lodCounts": [
-        410,
-        2441,
-        17149
+        0,
+        0,
+        20000
       ],
       "estimatedGpuInstanceMB": 4.3487548828125,
       "towerHeightM": 999.6384744475837,
-      "cameraAltitudeM": 500.15,
+      "cameraAltitudeM": 512.7192372237919,
       "quality": "performance",
       "farView": "silhouette",
-      "fps": 1.3236267372600927,
-      "frameMsP95": 755.5,
-      "frameMsP99": 755.5,
-      "drawCalls": 7,
-      "triangles": 515992,
+      "fps": 1.7111567419591995,
+      "frameMsP95": 584.3999999994412,
+      "frameMsP99": 584.3999999994412,
+      "drawCalls": 4,
+      "triangles": 480064,
       "lodTriangles": [
         64,
         32,
         24
       ],
-      "loadMs": 588.4000000003725,
-      "jsHeapMB": 33586999,
+      "loadMs": 601.4000000003725,
+      "jsHeapMB": 28098871,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -413,27 +333,27 @@
       "visibleChunks": 2,
       "renderedInstances": 20000,
       "lodCounts": [
-        410,
-        2441,
-        17149
+        0,
+        0,
+        20000
       ],
       "estimatedGpuInstanceMB": 4.3487548828125,
       "towerHeightM": 999.6384744475837,
-      "cameraAltitudeM": 500.15,
+      "cameraAltitudeM": 512.7192372237919,
       "quality": "performance",
       "farView": "atmospheric",
-      "fps": 0.8374507997654485,
-      "frameMsP95": 542.1999999997206,
-      "frameMsP99": 542.1999999997206,
-      "drawCalls": 7,
-      "triangles": 515992,
+      "fps": 1.4104372355430184,
+      "frameMsP95": 709,
+      "frameMsP99": 709,
+      "drawCalls": 5,
+      "triangles": 480068,
       "lodTriangles": [
         64,
         32,
         24
       ],
-      "loadMs": 599.2999999998137,
-      "jsHeapMB": 35970899,
+      "loadMs": 543.5,
+      "jsHeapMB": 28433205,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -453,27 +373,27 @@
       "visibleChunks": 1,
       "renderedInstances": 5000,
       "lodCounts": [
-        348,
-        1382,
-        3270
+        344,
+        1406,
+        3250
       ],
       "estimatedGpuInstanceMB": 1.087188720703125,
       "towerHeightM": 1050.3079378364337,
       "cameraAltitudeM": 1050.5079378364337,
       "quality": "performance",
       "farView": "silhouette",
-      "fps": 11.214953271028037,
-      "frameMsP95": 441.8000000002794,
-      "frameMsP99": 479.79999999981374,
+      "fps": 12.05649328281862,
+      "frameMsP95": 444.1000000005588,
+      "frameMsP99": 675,
       "drawCalls": 4,
-      "triangles": 145040,
+      "triangles": 145072,
       "lodTriangles": [
         64,
         32,
         24
       ],
-      "loadMs": 636.5,
-      "jsHeapMB": 52981485,
+      "loadMs": 596,
+      "jsHeapMB": 51742173,
       "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
       "viewport": [
@@ -485,7 +405,7 @@
       "drop": {
         "startSerial": 100000,
         "endSerial": 104999,
-        "simulationMs": 2636.7000000011176,
+        "simulationMs": 2801.299999991432,
         "total": 5000,
         "heightBeforeM": 999.6383909928799,
         "heightAfterM": 1050.300685633421
@@ -497,7 +417,7 @@
         "maxQuatError": 2.0215311956838789e-7,
         "converged": true,
         "framesDuringReplay": 17,
-        "fpsDuringReplay": 4.033406092815524
+        "fpsDuringReplay": 4.0384843805677635
       }
     }
   }
