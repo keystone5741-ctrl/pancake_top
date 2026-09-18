@@ -246,6 +246,12 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.20.3
+      rapier-canary:
+        specifier: npm:@dimforge/rapier3d-compat@0.0.0-5de07a4-20260808
+        version: '@dimforge/rapier3d-compat@0.0.0-5de07a4-20260808'
+      rapier-plain:
+        specifier: npm:@dimforge/rapier3d@0.20.0
+        version: '@dimforge/rapier3d@0.20.0'
       tsx:
         specifier: ^4.20.0
         version: 4.23.13
@@ -269,11 +275,17 @@ packages:
   '@dabh/diagnostics@2.0.9':
     resolution: {integrity: sha512-R6siwR65Hm+3yfgP7o8DKhNvputQAwfoz9zTc3kyDudnomj2/BcLmD+uGQQPICjuFUp8ounPBU+jmKsocwVVAg==}
 
+  '@dimforge/rapier3d-compat@0.0.0-5de07a4-20260808':
+    resolution: {integrity: sha512-fU/sYyWgi3oOfpa2QmAIXiwMm8Zxrdtm9NpfHbNni+/jyKqSKmT+Ad7JWj5Z4piLZEp+s4uwDNg3O/vOfW9hBg==}
+
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
 
   '@dimforge/rapier3d-compat@0.20.0':
     resolution: {integrity: sha512-X4W9pJBdGRX5CO3c/gUNjBFEFG2fn4nYxp9k8STdBDaLa0/w5XTW2ArpayS+9jGFojTi3uFSOWAElCd4rkpekA==}
+
+  '@dimforge/rapier3d@0.20.0':
+    resolution: {integrity: sha512-Tj5dwOG5kXgcN/JRgOLTk64UFBd9KkaCAsWHcmPXOcyuBX6Vo7/ptSwS6zW++NvZebjJOW9/njmIqTM4VsaUog==}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -1356,9 +1368,13 @@ snapshots:
       enabled: 2.0.0
       kuler: 2.0.0
 
+  '@dimforge/rapier3d-compat@0.0.0-5de07a4-20260808': {}
+
   '@dimforge/rapier3d-compat@0.12.0': {}
 
   '@dimforge/rapier3d-compat@0.20.0': {}
+
+  '@dimforge/rapier3d@0.20.0': {}
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true

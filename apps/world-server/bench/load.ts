@@ -9,13 +9,15 @@ import { writeFileSync } from "node:fs";
 
 const argv = process.argv.slice(2);
 const opt = (k: string, d: string): string => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
-const url = opt("--url", "http://localhost:8787");
+const urls = opt("--urls", opt("--url", "http://localhost:8787")).split(","); // 여러 서버 인스턴스에 라운드로빈 (Phase 3A §24)
+let rr = 0; const nextUrl = (): string => urls[rr++ % urls.length];
+const url = urls[0];
 const rates = opt("--rates", "1,10,50,100").split(",").map(Number);
 const seconds = Number(opt("--seconds", "10"));
 const doBurst = opt("--burst", "1") === "1";
 const doDrain = opt("--drain", "1") === "1";
 const out = opt("--out", "");
-const COUNTRIES = ["KR", "US", "JP", "DE", "FR", "GB", "BR", "IN"];
+const COUNTRIES = ["KR", "JP", "US", "BR", "ID", "ZZ"]; // Phase 3A §32
 
 interface Purchase { orderId: string; dropId: string; startSerial: number; endSerial: number; replayed: boolean; scheduledAt: string }
 interface Sample { ms: number; ok: boolean; status: number; qty: number; res?: Purchase; err?: string; sentAt: number }
@@ -25,7 +27,7 @@ const status = async (): Promise<Record<string, any>> => (await fetch(`${url}/ap
 async function purchase(qty: number, key?: string): Promise<Sample> {
   const t0 = performance.now(); const sentAt = Date.now();
   try {
-    const r = await fetch(`${url}/api/dev/purchase`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quantity: qty, country: COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)], idempotencyKey: key }) });
+    const r = await fetch(`${nextUrl()}/api/dev/purchase`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quantity: qty, country: COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)], idempotencyKey: key }) });
     const body = (await r.json()) as Purchase & { error?: string };
     return { ms: performance.now() - t0, ok: r.status === 201 || r.status === 200, status: r.status, qty, res: r.ok ? body : undefined, err: body.error, sentAt };
   } catch (e) { return { ms: performance.now() - t0, ok: false, status: 0, qty, err: String(e), sentAt }; }
@@ -57,7 +59,7 @@ function verifySerials(samples: Sample[]): { duplicates: number; gaps: number; a
   return { duplicates, gaps, allocated, serialMin: ranges[0]?.startSerial ?? 0, serialMax: prevEnd };
 }
 
-const report: Record<string, unknown> = { url, seconds, startedAt: new Date().toISOString() };
+const report: Record<string, unknown> = { urls, seconds, startedAt: new Date().toISOString() };
 const before = await status();
 console.log(`server: allocated ${(before.live ?? before.world).latest_global_serial}, committed ${before.world.committed_serial}, drop ${before.currentDrop.drop_id} (${before.currentDrop.status}) cutoff ${before.currentDrop.cutoff_at}`);
 const all: Sample[] = [];
@@ -121,7 +123,9 @@ if (doDrain) {
   // DB 정합성: pancakes 행 수 = latest_global_serial, committed 행 수 = committed_serial
   const fin = await status();
   const l = fin.live ?? fin.world;
-  report.consistency = { allocated: l.latest_global_serial, committed: l.committed_serial, allCommitted: l.latest_global_serial === l.committed_serial, jobs: fin.jobs };
+  report.consistency = { allocated: l.latest_global_serial, committed: l.committed_serial, allCommitted: l.latest_global_serial === l.committed_serial, jobs: fin.jobs, leader: fin.instanceId };
   console.log(`consistency: allocated ${l.latest_global_serial} committed ${l.committed_serial} jobs ${JSON.stringify(fin.jobs)}`);
+  // 여러 인스턴스: 각 인스턴스가 보는 leader / 상태
+  if (urls.length > 1) { const per = []; for (const u of urls) { const s = (await (await fetch(`${u}/api/dev/status`)).json()) as any; per.push({ url: u, instanceId: s.instanceId, leader: s.leader, committed: s.live?.committed_serial }); } report.instances = per; console.log(`instances: ${JSON.stringify(per)}`); }
 }
 if (out) { writeFileSync(out, JSON.stringify(report, null, 2)); console.log(`wrote ${out}`); }

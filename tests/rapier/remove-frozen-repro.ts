@@ -8,7 +8,12 @@
  * 표면보다 freezeDepth 아래 묻힌 Fixed body 는 removeRigidBody 로 제거한다. 다음 batch 는 모든 body 가 멈춘 뒤 넣는다.
  * 종료 코드: 0 = 완주, 2 = wasm 패닉(RuntimeError: unreachable), 1 = 다른 오류.
  */
-import RAPIER from "@dimforge/rapier3d-compat";
+import RAPIER_DEFAULT from "@dimforge/rapier3d-compat";
+import type * as RapierTypes from "@dimforge/rapier3d-compat";
+// --package 로 다른 빌드를 시험한다 (Phase 3A §34 Rapier upgrade research): 예 rapier-canary (npm alias)
+const pkgName = (() => { const i = process.argv.indexOf("--package"); return i >= 0 ? process.argv[i + 1] : ""; })();
+const RAPIER: typeof RAPIER_DEFAULT = pkgName ? ((await import(pkgName)) as { default?: typeof RAPIER_DEFAULT }).default ?? ((await import(pkgName)) as unknown as typeof RAPIER_DEFAULT) : RAPIER_DEFAULT;
+const rapierVersion = (): string => { try { return (RAPIER as unknown as { version: () => string }).version(); } catch { return "?"; } };
 
 const argv = process.argv.slice(2);
 const opt = (k: string, d: string): string => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
@@ -35,8 +40,8 @@ async function pure(): Promise<void> {
   world.createCollider(R.ColliderDesc.cuboid(5000, 5, 5000).setFriction(0.8), ground);
   const r = rng(seed);
   const halfH = 0.05, radius = 0.5, edge = 0.03;
-  const dynamic = new Set<RAPIER.RigidBody>();
-  const fixed: RAPIER.RigidBody[] = [];
+  const dynamic = new Set<RapierTypes.RigidBody>();
+  const fixed: RapierTypes.RigidBody[] = [];
   const eq = new R.EventQueue(true);
   let spawned = 0, removed = 0, steps = 0, top = 0;
   while (spawned < count) {
@@ -53,7 +58,7 @@ async function pure(): Promise<void> {
     while (dynamic.size > 0 && guard++ < 4000) {
       world.step(eq);
       steps++;
-      const stick: RAPIER.RigidBody[] = [];
+      const stick: RapierTypes.RigidBody[] = [];
       eq.drainCollisionEvents((h1: number, h2: number, started: boolean) => {
         if (!started) return;
         const c1 = world.getCollider(h1), c2 = world.getCollider(h2);
@@ -78,7 +83,7 @@ async function pure(): Promise<void> {
     }
     progress.spawned = spawned; progress.removed = removed; progress.steps = steps; progress.batches++;
   }
-  console.log(`pure: ok spawned ${spawned} removed ${removed} (remove=${doRemove}) steps ${steps} bodies ${world.bodies.len()} top ${top.toFixed(2)}`);
+  console.log(`pure[${pkgName || "@dimforge/rapier3d-compat"} ${rapierVersion()}]: ok spawned ${spawned} removed ${removed} (remove=${doRemove}) steps ${steps} bodies ${world.bodies.len()} top ${top.toFixed(2)}`);
 }
 
 /** 초소형: 팬케이크 2~3장. 1장이 바닥에 닿아 Fixed 가 되고, 2장이 그 위에 닿아 Fixed 가 된 뒤 1장을 제거한다. */
@@ -89,9 +94,9 @@ async function minimal(): Promise<void> {
   world.integrationParameters.dt = 1 / 60;
   const ground = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(0, -5, 0));
   world.createCollider(R.ColliderDesc.cuboid(50, 5, 50), ground);
-  const mk = (y: number): RAPIER.RigidBody => { const b = world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(0, y, 0).setLinearDamping(2).setCcdEnabled(true)); world.createCollider(R.ColliderDesc.roundCylinder(0.02, 0.47, 0.03).setFriction(0.8).setDensity(1), b); return b; };
+  const mk = (y: number): RapierTypes.RigidBody => { const b = world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(0, y, 0).setLinearDamping(2).setCcdEnabled(true)); world.createCollider(R.ColliderDesc.roundCylinder(0.02, 0.47, 0.03).setFriction(0.8).setDensity(1), b); return b; };
   const n = Number(opt("--n", "3"));
-  const bodies: RAPIER.RigidBody[] = [];
+  const bodies: RapierTypes.RigidBody[] = [];
   for (let i = 0; i < n; i++) {
     const b = mk(1 + i * 0.5); bodies.push(b);
     let guard = 0; while (!b.isSleeping() && guard++ < 2000) world.step();
@@ -126,6 +131,6 @@ try {
 } catch (e) {
   const msg = String((e as Error)?.message ?? e);
   const panic = (e as Error)?.constructor?.name === "RuntimeError" || /unreachable/.test(msg);
-  console.error(`${mode}: ${panic ? "WASM PANIC" : "ERROR"}: ${msg} (after ${progress.batches} batches, spawned ${progress.spawned}, removed ${progress.removed}, steps ${progress.steps})`);
+  console.error(`${mode}[${pkgName || "@dimforge/rapier3d-compat"} ${rapierVersion()}]: ${panic ? "WASM PANIC" : "ERROR"}: ${msg} (after ${progress.batches} batches, spawned ${progress.spawned}, removed ${progress.removed}, steps ${progress.steps})`);
   process.exit(panic ? 2 : 1);
 }

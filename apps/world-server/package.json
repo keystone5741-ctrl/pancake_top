@@ -12,7 +12,11 @@
     "seed:synthetic": "tsx bench/seed-synthetic.ts",
     "bench:load": "tsx bench/load.ts",
     "bench:batch": "tsx bench/batch-policy.ts",
-    "bench:drop100k": "tsx bench/drop100k.ts"
+    "bench:drop100k": "tsx bench/drop100k.ts",
+    "bench:speculative": "tsx bench/speculative.ts",
+    "bench:compression": "tsx bench/compression.ts",
+    "bench:storage": "tsx bench/storage-1m.ts",
+    "s3:mock": "node --openssl-legacy-provider bench/s3mock.cjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

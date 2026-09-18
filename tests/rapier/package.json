@@ -14,6 +14,8 @@
   },
   "devDependencies": {
     "@types/node": "^22",
+    "rapier-canary": "npm:@dimforge/rapier3d-compat@0.0.0-5de07a4-20260808",
+    "rapier-plain": "npm:@dimforge/rapier3d@0.20.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"

@@ -33,20 +33,32 @@ export interface RemoteEvents {
   onStatus?: (s: "connecting" | "open" | "closed") => void;
 }
 
-/** 자동 재접속 WebSocket. 재접속하면 서버가 world.snapshot 을 다시 보내 준다 (§33). */
-export function connectRealtime(server: string, h: RemoteEvents): { close: () => void } {
+/**
+ * 자동 재접속 WebSocket. 접속하면 서버가 world.snapshot(lastEventId 포함)을 보낸다.
+ * 재접속하면 마지막으로 받은 eventId 로 resync 를 요청해 놓친 이벤트를 replay 받고(Phase 3A §19), retention 밖이면 서버가 snapshot 을 보낸다.
+ */
+export function connectRealtime(server: string, h: RemoteEvents): { close: () => void; lastEventId: () => number } {
   let ws: WebSocket | null = null;
   let closed = false;
   let delay = 500;
+  let lastEventId = -1;
+  let first = true;
+  const stats = { replayed: 0, resyncs: 0 };
   const open = (): void => {
     if (closed) return;
     h.onStatus?.("connecting");
     ws = new WebSocket(server.replace(/^http/, "ws") + "/ws");
-    ws.onopen = () => { delay = 500; h.onStatus?.("open"); };
-    ws.onmessage = (m) => { const e = JSON.parse(String(m.data)) as Record<string, unknown>; if (e.type === "world.snapshot") h.onSnapshot?.(e); h.onEvent?.(e); };
+    ws.onopen = () => { delay = 500; h.onStatus?.("open"); if (!first && lastEventId >= 0) { stats.resyncs++; ws?.send(JSON.stringify({ type: "resync", lastEventId })); } first = false; };
+    ws.onmessage = (m) => {
+      const e = JSON.parse(String(m.data)) as Record<string, unknown>;
+      if (typeof e.eventId === "number") { if (e.eventId <= lastEventId) return; lastEventId = e.eventId; }
+      if (e.type === "world.snapshot") { if (typeof e.lastEventId === "number") lastEventId = Math.max(lastEventId, e.lastEventId); h.onSnapshot?.(e); }
+      if (e.type === "resync.done") { stats.replayed += Number(e.replayed ?? 0); console.log(`realtime: resync replayed ${e.replayed} events (lastEventId ${e.lastEventId})`); }
+      h.onEvent?.(e);
+    };
     ws.onclose = () => { h.onStatus?.("closed"); if (!closed) setTimeout(open, delay); delay = Math.min(delay * 2, 10_000); };
     ws.onerror = () => { ws?.close(); };
   };
   open();
-  return { close: () => { closed = true; ws?.close(); } };
+  return { close: () => { closed = true; ws?.close(); }, lastEventId: () => lastEventId };
 }

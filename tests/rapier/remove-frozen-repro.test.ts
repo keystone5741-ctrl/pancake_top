@@ -22,7 +22,7 @@ describe(`rapier ${rapierVersion()} removeRigidBody panic`, () => {
   });
   it("control: same scene without removeRigidBody completes", () => {
     const r = run(["--mode", "pure", "--batch", "20", "--seed", "1", "--count", "200", "--remove", "0"]);
-    expect(r.out).toMatch(/pure: ok/);
+    expect(r.out).toMatch(/pure\[[^\]]*\]: ok/);
     expect(r.code).toBe(0);
   });
   it("TowerSim freezeMode:\"rebuild\" (production) completes the same pattern", () => {

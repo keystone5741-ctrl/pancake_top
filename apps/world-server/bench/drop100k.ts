@@ -19,14 +19,15 @@ const opt = (k: string, d: string): string => { const i = argv.indexOf(k); retur
 const count = Number(opt("--count", "100000"));
 const batch = Number(opt("--batch", "100"));
 const out = opt("--out", "");
+const overlap = opt("--overlap", "1") === "1"; // Phase 3A §4-B pipeline (물리와 커밋 겹침)
 const dbUrl = opt("--db", process.env.BENCH_DATABASE_URL ?? "postgres://pancake:pancake@127.0.0.1:5432/pancake_test");
 const dir = mkdtempSync(join(tmpdir(), "pancake-drop100k-"));
-const cfg = loadConfig({ databaseUrl: dbUrl, dataDir: dir, chunkSize: 10_000, simBatchSize: batch, simBatchWindowMs: 0, snapshotEveryPancakes: 10_000, dropIntervalSeconds: 600, dropCutoffSeconds: 60 });
+const cfg = loadConfig({ databaseUrl: dbUrl, dataDir: dir, chunkSize: 10_000, simBatchSize: batch, simBatchWindowMs: 0, snapshotEveryPancakes: 10_000, dropIntervalSeconds: 600, dropCutoffSeconds: 60, pipelineOverlap: overlap });
 
 let now = new Date("2026-09-18T03:02:00.000Z"); // drop_20260918T031000Z, cutoff 03:09:00
 const db = new Db(dbUrl);
 await db.dropAll(); await db.migrate(); await ensureWorld(db, cfg.worldId);
-const app = new WorldApp({ db, storage: new LocalChunkStorage(join(dir, "chunks")), config: cfg, clock: () => now });
+const app = new WorldApp({ db, storage: new LocalChunkStorage(join(dir, "chunks")), config: cfg, clock: () => now, cluster: false });
 const events: Record<string, number> = {}; const timeline: { t: number; type: string; detail?: string }[] = [];
 const jobMetrics: { n: number; wallMs: number; workerWallMs: number; penP95: number; penMax: number; tilt: number; leaks: number; maxActive: number }[] = [];
 const T0 = performance.now();
@@ -74,11 +75,12 @@ const manifest = await app.store.manifest();
 const per = (a: number[], p: number): number => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor((s.length - 1) * p)]; };
 const sum = (a: number[]): number => a.reduce((x, y) => x + y, 0);
 const result = {
-  count, batch, orders, purchaseSeconds: purchaseS, totalSeconds: simS, drainAfterCutoffSeconds: drainS,
+  count, batch, overlap, orders, purchaseSeconds: purchaseS, totalSeconds: simS, drainAfterCutoffSeconds: drainS,
   throughputPerSec: count / simS, drop: { status: drop.status, pancakeCount: drop.pancake_count, heightBefore: drop.height_before, heightAfter: drop.height_after, startSerial: drop.start_serial, endSerial: drop.end_serial },
   world: { version: app.store.version, committed: app.store.committedSerial, heightMeters: app.store.worldState.height_meters, chunks: manifest.chunks.length, finalizedChunks: manifest.chunks.filter((c) => c.finalized).length, chunkBytes: sum(manifest.chunks.map((c) => c.byteLength)) },
   jobs: { total: jobMetrics.length, wallP50Ms: per(jobMetrics.map((j) => j.wallMs), 0.5), wallP95Ms: per(jobMetrics.map((j) => j.wallMs), 0.95), workerWallP50Ms: per(jobMetrics.map((j) => j.workerWallMs), 0.5), ipcAndCommitOverheadMsAvg: sum(jobMetrics.map((j) => j.wallMs - j.workerWallMs)) / jobMetrics.length, maxActiveMax: Math.max(...jobMetrics.map((j) => j.maxActive)), statuses: jobs },
   shape: { penetrationP95Max: Math.max(...jobMetrics.map((j) => j.penP95)), penetrationMaxMax: Math.max(...jobMetrics.map((j) => j.penMax)), tiltMedianAvg: sum(jobMetrics.map((j) => j.tilt)) / jobMetrics.length, leaks: sum(jobMetrics.map((j) => j.leaks)) },
+  pipeline: { overlappedCommits: m.overlappedCommits, discardedResults: m.discardedResults, encodeMsAvg: m.chunkEncodeMsAvg, storageUploadMsAvg: m.storageUploadMsAvg, dbTxMsAvg: m.dbTxMsAvg, dbLatencyP95Ms: m.dbLatencyP95Ms },
   store: { commitMsAvg: m.commitMsAvg, commits: m.commits, chunkWriteMsAvg: m.chunkWriteMsAvg, chunkWrites: m.chunkWrites, snapshots, workerCrashes: m.workerCrashes, workerRestarts: m.workerRestarts, jobRetries: m.jobRetries },
   consistency: { committedRows, allocated, ok: committedRows === allocated && app.store.committedSerial === allocated && drop.pancake_count === allocated },
   events, timeline, memory: { rssMB: rss(), dbSize: dbSize.s, dbBytes: dbSize.b },
