@@ -6,3 +6,5 @@ export * from "./visibility";
 export * from "./tower";
 export * from "./streaming";
 export * from "./synthetic";
+export * from "./binaryChunk";
+export * from "./urlSource";

@@ -5,3 +5,4 @@ export * from "./colors";
 export * from "./highlight";
 export * from "./silhouette";
 export * from "./chunkRenderer";
+export * from "./dropReplay";

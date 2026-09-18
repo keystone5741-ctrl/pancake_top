@@ -142,6 +142,12 @@ export class ChunkRenderer {
     this.highlight.update(dtMs);
   }
 
+  /** chunk 내용이 바뀌었을 때 (append 등) GPU 표현을 버린다. 다음 update 에서 다시 만든다. */
+  invalidateChunks(ids: Iterable<import("pancake-core").ChunkId>): void {
+    for (const id of ids) { this.meshSets.get(id)?.dispose(); this.meshSets.delete(id); this.colorCache.delete(id); }
+    this.lastPartitionPos.set(Infinity, Infinity, Infinity);
+  }
+
   /** 팬케이크 선택 강조 */
   select(r: FindResult | null): void { if (r) this.highlight.select(r); else this.highlight.clear(); }
 

@@ -31,6 +31,12 @@ export class Tower {
   }
 
   get count(): number { return this.source.totalCount; }
+
+  /** 소스에 chunk 가 추가/변경된 뒤 호출. 바뀐 chunk 는 UNLOADED 로 되돌려 다시 로드하게 한다. */
+  refresh(changed: Iterable<ChunkId>): void {
+    for (const h of this.source.headers) { this.headerById.set(h.id, h); if (!this.states.has(h.id)) this.states.set(h.id, "UNLOADED"); }
+    for (const id of changed) { this.loaded.delete(id); this.states.set(id, "UNLOADED"); }
+  }
   get chunkCount(): number { return this.source.headers.length; }
   get headers(): readonly ChunkHeader[] { return this.source.headers; }
   get loadedChunkCount(): number { return this.loaded.size; }
