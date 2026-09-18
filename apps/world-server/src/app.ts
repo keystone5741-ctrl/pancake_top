@@ -116,7 +116,7 @@ export class WorldApp {
       const reclaimed = await this.store.recoverJobs();
       if (reclaimed) log.warn("jobs.reclaimed", { count: reclaimed });
       await this.ensureCurrentDrop();
-      this.timer = setInterval(() => { void this.tick(); }, 1000);
+      this.timer = setInterval(() => { this.tick().catch((e) => log.error("tick.failed", { error: String(e) })); }, 1000);
       this.pruneTimer = setInterval(() => { void this.eventLog.prune().catch((e) => log.error("events.prune", { error: String(e) })); }, 60_000);
       await this.publish({ type: "leader.changed", instanceId: this.instanceId, isLeader: true, term: this.leader.term });
       this.kick();
@@ -163,8 +163,11 @@ export class WorldApp {
     return (await this.getDrop(dropId))!;
   }
 
+  /** tick 은 재진입하지 않는다 (타이머 tick 과 수동/테스트 tick 이 겹치면 같은 전이를 두 번 시도한다) */
+  private tickChain: Promise<void> = Promise.resolve();
+  tick(now = this.clock()): Promise<void> { const run = this.tickChain.then(() => this.tickOnce(now)); this.tickChain = run.catch(() => undefined); return run; }
   /** 초당 tick (leader 만): cutoff → CLOSING, 완료 → READY, 시각 도래 → RELEASED / DELAYED */
-  async tick(now = this.clock()): Promise<void> {
+  private async tickOnce(now: Date): Promise<void> {
     if (this.stopped || !this.isLeader) return;
     const drops = (await this.db.query<DropRow>("SELECT * FROM drops WHERE status NOT IN ('RELEASED','FAILED') ORDER BY scheduled_at")).rows;
     for (const d of drops) {

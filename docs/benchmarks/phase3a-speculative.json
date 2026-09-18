@@ -1,0 +1,41 @@
+{
+  "threshold": 0.05,
+  "results": [
+    {
+      "seed": 1,
+      "count": 3000,
+      "batch": 100,
+      "sequentialMs": 1104.010077,
+      "batchesCompared": 29,
+      "batchesMismatched": 28,
+      "recomputeRate": 0.9655172413793104,
+      "maxPositionDeltaUnits": 0.9202610331735004,
+      "speculativeWorkMs": 1833.2576350000013,
+      "heightM": 30.290798898339272
+    },
+    {
+      "seed": 2,
+      "count": 3000,
+      "batch": 100,
+      "sequentialMs": 849.4629919999998,
+      "batchesCompared": 29,
+      "batchesMismatched": 28,
+      "recomputeRate": 0.9655172413793104,
+      "maxPositionDeltaUnits": 0.8666303198262074,
+      "speculativeWorkMs": 1623.2622510000028,
+      "heightM": 30.252551454901695
+    },
+    {
+      "seed": 3,
+      "count": 3000,
+      "batch": 100,
+      "sequentialMs": 843.9388740000004,
+      "batchesCompared": 29,
+      "batchesMismatched": 28,
+      "recomputeRate": 0.9655172413793104,
+      "maxPositionDeltaUnits": 1.0241010261989298,
+      "speculativeWorkMs": 1726.8891099999964,
+      "heightM": 30.276756155490876
+    }
+  ]
+}

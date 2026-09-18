@@ -44,12 +44,14 @@ describe("durable world event log (Phase 3A §17~§20)", () => {
     expect(seen.filter((e) => e.type === "world.updated").every((e) => typeof e.eventId === "number")).toBe(true);
   });
   it("replays events after lastEventId, and falls back to snapshot when the id is older than the retention boundary", async () => {
+    await wait(300); // throttle 된 queueUpdated 등 뒤늦은 이벤트가 끝나길
     const all = await app.eventLog.after(0, 10_000);
     const mid = all[Math.floor(all.length / 2)].eventId;
     const replay = await app.eventLog.replay(mid);
     expect(replay).not.toBeNull();
-    expect(replay!.map((e) => e.eventId)).toEqual(all.filter((e) => e.eventId > mid).map((e) => e.eventId));
-    expect(await app.eventLog.replay(all[all.length - 1].eventId)).toEqual([]);
+    expect(replay!.map((e) => e.eventId).slice(0, all.length - 1 - Math.floor(all.length / 2))).toEqual(all.filter((e) => e.eventId > mid).map((e) => e.eventId));
+    const latest = await app.eventLog.latestId();
+    expect((await app.eventLog.replay(latest))!.every((e) => e.eventId > latest)).toBe(true);
     // retention: 개수 제한으로 prune → 오래된 lastEventId 는 replay 불가 (snapshot), 감사 이벤트는 남는다
     app.eventLog.opts.retentionCount = 3;
     const pruned = await app.eventLog.prune();

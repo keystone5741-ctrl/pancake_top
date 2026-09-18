@@ -18,11 +18,13 @@
 | [`docs/benchmarks/phase1-world-engine.md`](docs/benchmarks/phase1-world-engine.md) | Phase 1 벤치마크: 100k/500k/1M 구조, 연속 시뮬레이션, 증분 vs 일괄, 물리 회귀표, 원거리 비교 |
 | [`docs/phase2/SERVER_ARCHITECTURE.md`](docs/phase2/SERVER_ARCHITECTURE.md) · [`DROP_PROTOCOL.md`](docs/phase2/DROP_PROTOCOL.md) · [`WORLD_PERSISTENCE.md`](docs/phase2/WORLD_PERSISTENCE.md) · [`RECOVERY.md`](docs/phase2/RECOVERY.md) · [`RAPIER_020_PANIC.md`](docs/phase2/RAPIER_020_PANIC.md) | Phase 2 서버: 경계/프로세스 모델, Drop 생명주기와 HTTP/WS 프로토콜, PostgreSQL 스키마·chunk 영속성·원자 커밋, 실패 지점별 복구, Rapier 패닉 최소 재현 |
 | [`docs/benchmarks/phase2-server.md`](docs/benchmarks/phase2-server.md) | Phase 2 벤치마크: 구매 부하(1~100 req/s, cutoff burst), 100k 연속 Drop, batch 정책, 1M 서버 월드 스트리밍, worker 크래시 복구 |
+| [`docs/phase3a/SCALING.md`](docs/phase3a/SCALING.md) · [`OBJECT_STORAGE.md`](docs/phase3a/OBJECT_STORAGE.md) · [`OPERATIONS.md`](docs/phase3a/OPERATIONS.md) · [`EVENT_LOG.md`](docs/phase3a/EVENT_LOG.md) · [`MULTI_INSTANCE.md`](docs/phase3a/MULTI_INSTANCE.md) | Phase 3A: 단일 물리 lane + 커밋 파이프라인, S3 호환 객체 저장소와 커밋 순서, FAILED 복구 API·health·metrics·로그, durable 이벤트 로그와 replay, 다중 인스턴스 leader 선출 |
+| [`docs/benchmarks/phase3a-infrastructure.md`](docs/benchmarks/phase3a-infrastructure.md) | Phase 3A 벤치마크: 파이프라인 처리량, batch 재검증, 객체 저장소 1M/10M, 압축 비교, leader failover, 2-서버 부하, Rapier 버전 실험 |
 
 ## 코드
 
 ```text
-apps/world-server/        Phase 2 — Drop 서버 (HTTP/WS, 10분 Drop 스케줄러, serial 할당, 시뮬레이션 worker 프로세스, PostgreSQL + chunk 저장소)
+apps/world-server/        Phase 2/3A — Drop 서버 (HTTP/WS, 10분 Drop 스케줄러, serial 할당, 시뮬레이션 worker 프로세스, PostgreSQL, 로컬/S3 호환 chunk 저장소, 이벤트 로그, leader 선출, 관리 API)
 apps/world-prototype/     Phase 1/2 — World Engine 검증 앱 (chunk 스트리밍, LOD, Find, Height Mode, Continuous Drop, Replay; ?source=server 로 서버 월드)
 apps/physics-prototype/   Phase 0/0.5/0.75 — 물리 프로토타입과 벤치마크 (재현용 유지)
 tests/rapier/             Rapier 0.20 removeRigidBody 패닉 최소 재현 (제품 코드 무관)
@@ -42,7 +44,9 @@ pnpm typecheck && pnpm test && pnpm build   # test 는 로컬 PostgreSQL(pancake
 # Phase 2 서버 (PostgreSQL 16, role pancake/pancake, db pancake_world · pancake_test)
 pnpm --filter world-server migrate
 pnpm --filter world-server seed:synthetic -- --count 1000000   # 1M 합성 월드 (선택)
-pnpm --filter world-server dev                                  # http://localhost:8787  (/dev 디버그, /ws)
+pnpm --filter world-server dev                                  # http://localhost:8787  (/dev 디버그, /ws, /health/ready, /api/metrics)
+# 객체 저장소: STORAGE_KIND=object S3_ENDPOINT=… S3_BUCKET=… S3_ACCESS_KEY_ID=… S3_SECRET_ACCESS_KEY=…  (로컬 mock: pnpm --filter world-server s3:mock)
+# 인스턴스 추가: INSTANCE_ID=B PORT=8788 pnpm --filter world-server dev   (같은 DB; leader 는 자동 선출)
 pnpm world   # → http://localhost:5174/?source=server&server=http://localhost:8787
 ```
 
@@ -50,7 +54,7 @@ pnpm world   # → http://localhost:5174/?source=server&server=http://localhost:
 
 ## 현재 상태
 
-**Phase 0 / 0.5** 완료, **Phase 0.75** 도구 준비 완료(실제 기기 측정 대기), **Phase 1 — Core World Engine** 구현 완료, **Phase 2 — Server Drop Infrastructure & World Streaming** 구현 완료 (플랜 §44). 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
+**Phase 0 / 0.5** 완료, **Phase 0.75** 도구 준비 완료(실제 기기 측정 대기), **Phase 1 — Core World Engine** 구현 완료, **Phase 2 — Server Drop Infrastructure & World Streaming** 구현 완료, **Phase 3A — Scale, Storage & Operations Hardening** 구현 완료 (플랜 §44). 다음은 Phase 3B — Product Rules. 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
 
 ## 개발 역할 (§46)
 

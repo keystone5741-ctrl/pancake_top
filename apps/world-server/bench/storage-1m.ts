@@ -51,13 +51,12 @@ const tp = performance.now();
 for (let s = 1; s <= count; s += 1_000_000) {
   const e = Math.min(count, s + 999_999);
   await db.query(`INSERT INTO pancakes (pancake_id, global_serial, country, country_serial, drop_id, order_id, chunk_id, instance_index, variant, committed_at)
-    SELECT s, s, c, 0, 'drop_synthetic', 'order_synthetic', ((s - 1) / $3)::int, ((s - 1) % $3)::int, 0, now() FROM (SELECT s, ($4::text[])[((s - 1) * 7919) % $5 + 1] AS c FROM generate_series($1::bigint, $2::bigint) AS s) t`, [s, e, cfg.chunkSize, COUNTRIES, COUNTRIES.length]);
+    SELECT s, s, c, ((s - 1) / $5) + 1, 'drop_synthetic', 'order_synthetic', ((s - 1) / $3)::int, ((s - 1) % $3)::int, 0, now() FROM (SELECT s, ($4::text[])[((s - 1) * 7919) % $5 + 1] AS c FROM generate_series($1::bigint, $2::bigint) AS s) t`, [s, e, cfg.chunkSize, COUNTRIES, COUNTRIES.length]);
   process.stdout.write(`  pancake rows ${e}/${count} (${((performance.now() - tp) / 1000).toFixed(0)} s)   \r`);
 }
 console.log();
-// country_serial 은 국가별 row_number (1M 단위 배치라 별도 UPDATE)
+// country 는 ((s-1)*7919) mod 6 = ((s-1)*5) mod 6 → 연속 6 serial 마다 6개 국가가 한 번씩 → country_serial = (s-1) div 6 + 1 이 국가별 1..N 연속 (10M 행 UPDATE 회피)
 const tc = performance.now();
-await db.query("UPDATE pancakes p SET country_serial = r.rn FROM (SELECT global_serial, row_number() OVER (PARTITION BY country ORDER BY global_serial) AS rn FROM pancakes) r WHERE p.global_serial = r.global_serial");
 await db.query("INSERT INTO country_counters (country, latest_serial) SELECT country, COUNT(*) FROM pancakes GROUP BY country ON CONFLICT (country) DO UPDATE SET latest_serial = EXCLUDED.latest_serial");
 const heightMeters = (heightUnits * towerCfg.unitCm) / 100;
 await db.query("INSERT INTO world_state (world_id, latest_global_serial, committed_serial, height_meters, height_units, latest_chunk_id, version) VALUES ($1, $2::bigint, $2::bigint, $3, $4, $5, 1) ON CONFLICT (world_id) DO UPDATE SET latest_global_serial = EXCLUDED.latest_global_serial, committed_serial = EXCLUDED.committed_serial, height_meters = EXCLUDED.height_meters, height_units = EXCLUDED.height_units, latest_chunk_id = EXCLUDED.latest_chunk_id, version = 1", [cfg.worldId, count, heightMeters, heightUnits, nChunks - 1]);

@@ -1,0 +1,27 @@
+{
+  "count": 100000,
+  "chunks": 10,
+  "bytes": {
+    "raw": 4001000,
+    "gzip": 3368200,
+    "br": 3362750
+  },
+  "raw": {
+    "totalMs": 47.19999999925494,
+    "msPerChunk": 4.719999999925494,
+    "decodedBytes": 4001000,
+    "avgResponseMs": 2.1400000002235173
+  },
+  "gzip": {
+    "totalMs": 60.29999999701977,
+    "msPerChunk": 6.029999999701976,
+    "decodedBytes": 4001000,
+    "avgResponseMs": 3.805000000447035
+  },
+  "br": {
+    "totalMs": 81.89999999850988,
+    "msPerChunk": 8.189999999850988,
+    "decodedBytes": 4001000,
+    "avgResponseMs": 5.995000000856817
+  }
+}

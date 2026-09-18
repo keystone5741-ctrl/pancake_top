@@ -976,9 +976,19 @@ PC / iPhone / Android 각 환경 성능 측정.
 
 **상태 (2026-09-18): 구현 완료.** [`phase2/SERVER_ARCHITECTURE.md`](./phase2/SERVER_ARCHITECTURE.md), [`benchmarks/phase2-server.md`](./benchmarks/phase2-server.md). (원래 v0.2 의 "Phase 2 — Tower Engine: Chunk / Streaming / LOD / Find / Height" 는 Phase 1 에서 끝났고, Season/Fallen Field chunk 구조는 Phase 3b 로 미룬다.)
 
-### Phase 3 — Drop Engine (제품화)
+### Phase 3A — Scale, Storage & Operations Hardening
 
-Phase 2 인프라 위에 실제 결제 연결, 다중 인스턴스/CDN(S3·R2 ChunkStorage), 관리 API(FAILED job 복구), 이벤트 replay, Freeze System 튜닝, Realtime 동기화 마감.
+결제·제품 기능 직전의 마지막 인프라 Phase. 원칙 "One World → One Authoritative Physics Lane"(물리는 순차, 나머지는 병렬): 커밋 파이프라인(chunk 인코딩/업로드/DB 커밋을 다음 batch 물리와 겹침), worker 의 O(n) 제거, batch 재검증; S3 호환 객체 저장소 어댑터(SDK 없음, immutable `chunks/<id>-v<version>` + `staging/`, 업로드→검증→DB→승격 순서, DB 권위 유지); FAILED Drop 복구 API(retry/recover/abort, 실패 원인, 시도 기록 보존); durable 이벤트 로그와 재접속 replay(retention, 감사 이벤트); 다중 HTTP 인스턴스(advisory-lock leader, failover, job claim); health/metrics/구조화 로그; 1M/10M 저장소 벤치, 압축 비교, 투기적 병렬 물리 연구, Rapier 버전 실험.
+
+**상태 (2026-09-18): 구현 완료.** [`phase3a/SCALING.md`](./phase3a/SCALING.md) 외 4편, [`benchmarks/phase3a-infrastructure.md`](./benchmarks/phase3a-infrastructure.md). 실기기 게이트(Phase 0.75)는 여전히 열려 있어 `minVisiblePx`, LOD threshold, mobile preset, 실루엣/대기 효과 값은 config 로 남긴다.
+
+### Phase 3B — Product Rules
+
+국가 선택, 국가 순위, Country Serial UX, Rare Window, Random rare target, Commit/Reveal fairness, Rare variants, 10분 Drop 의 제품 규칙, 실제 사용자에게 보여줄 데이터 모델.
+
+### Phase 4 — Actual Payment
+
+Toss Payments, 해외 카드, order/payment lifecycle, refunds, chargebacks.
 
 ### Phase 3b — Collapse Engine **[v0.3]**
 

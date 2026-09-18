@@ -1,0 +1,195 @@
+{
+  "failoverMs": 307,
+  "load1": {
+    "urls": [
+      "http://localhost:8787",
+      "http://localhost:8788"
+    ],
+    "seconds": 10,
+    "startedAt": "2026-09-18T06:29:58.763Z",
+    "rates": [
+      {
+        "rate": 10,
+        "sent": 100,
+        "ok": 100,
+        "errors": 0,
+        "p50": 5.733675999999832,
+        "p95": 9.036355000000185,
+        "max": 20.9903319999994,
+        "achievedRps": 10.096370525041246,
+        "duplicates": 0,
+        "gaps": 0,
+        "allocated": 529,
+        "serialMin": 1025912,
+        "serialMax": 1026440
+      },
+      {
+        "rate": 50,
+        "sent": 500,
+        "ok": 500,
+        "errors": 0,
+        "p50": 4.105562999999165,
+        "p95": 7.348503000001074,
+        "max": 39.52360199999748,
+        "achievedRps": 50.08820895735141,
+        "duplicates": 0,
+        "gaps": 0,
+        "allocated": 2791,
+        "serialMin": 1026441,
+        "serialMax": 1029231
+      },
+      {
+        "rate": 100,
+        "sent": 1000,
+        "ok": 1000,
+        "errors": 0,
+        "p50": 3.518653999999515,
+        "p95": 10.782928000000538,
+        "max": 70.86921699999948,
+        "achievedRps": 100.07614499648916,
+        "duplicates": 0,
+        "gaps": 0,
+        "allocated": 5388,
+        "serialMin": 1029232,
+        "serialMax": 1034619
+      }
+    ],
+    "idempotency": {
+      "same": true,
+      "replayed": true,
+      "statusA": 201,
+      "statusB": 200
+    },
+    "total": {
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 8711,
+      "serialMin": 1025912,
+      "serialMax": 1034622,
+      "serverDelta": 8711,
+      "lost": 0
+    },
+    "burst": {
+      "dropId": "drop_20260918T063200Z",
+      "sent": 735,
+      "ok": 735,
+      "errors": 0,
+      "perDrop": {
+        "drop_20260918T063200Z": 357,
+        "drop_20260918T063400Z": 378
+      },
+      "lateIntoClosedDrop": 0,
+      "p95": 10.471882999991067,
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 4030,
+      "serialMin": 1034623,
+      "serialMax": 1038652,
+      "closedDropStatus": "READY",
+      "closedDropCount": 10664,
+      "nextDrop": "drop_20260918T063400Z"
+    },
+    "drain": {
+      "seconds": 1.007,
+      "pending": 0,
+      "committed": 1038652,
+      "allocated": 1038652,
+      "jobP50Ms": 41.85812699999951,
+      "jobP95Ms": 57.196211999995285,
+      "commitMsAvg": 14.84801625806439,
+      "chunkWriteMsAvg": 1.4382573910260221,
+      "workerCrashes": 0,
+      "jobRetries": 0
+    },
+    "consistency": {
+      "allocated": 1038652,
+      "committed": 1038652,
+      "allCommitted": true,
+      "jobs": [
+        {
+          "status": "DONE",
+          "n": 501
+        }
+      ],
+      "leader": "A"
+    },
+    "instances": [
+      {
+        "url": "http://localhost:8787",
+        "instanceId": "A",
+        "leader": true,
+        "committed": 1038652
+      },
+      {
+        "url": "http://localhost:8788",
+        "instanceId": "B",
+        "leader": false,
+        "committed": 1038652
+      }
+    ]
+  },
+  "load2": {
+    "urls": [
+      "http://localhost:8788"
+    ],
+    "seconds": 20,
+    "startedAt": "2026-09-18T06:31:43.657Z",
+    "rates": [
+      {
+        "rate": 50,
+        "sent": 1000,
+        "ok": 1000,
+        "errors": 0,
+        "p50": 3.67244299999993,
+        "p95": 5.558608000001186,
+        "max": 19.711135999999897,
+        "achievedRps": 50.04306027934389,
+        "duplicates": 0,
+        "gaps": 0,
+        "allocated": 5426,
+        "serialMin": 1038653,
+        "serialMax": 1044078
+      }
+    ],
+    "idempotency": {
+      "same": true,
+      "replayed": true,
+      "statusA": 201,
+      "statusB": 200
+    },
+    "total": {
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 5429,
+      "serialMin": 1038653,
+      "serialMax": 1044081,
+      "serverDelta": 5429,
+      "lost": 0
+    },
+    "drain": {
+      "seconds": 1.007,
+      "pending": 0,
+      "committed": 1044081,
+      "allocated": 1044081,
+      "jobP50Ms": 31.094922000003862,
+      "jobP95Ms": 58.576092999996035,
+      "commitMsAvg": 13.703293940298252,
+      "chunkWriteMsAvg": 1.1461324558821455,
+      "workerCrashes": 0,
+      "jobRetries": 0
+    },
+    "consistency": {
+      "allocated": 1044081,
+      "committed": 1044081,
+      "allCommitted": true,
+      "jobs": [
+        {
+          "status": "DONE",
+          "n": 568
+        }
+      ],
+      "leader": "B"
+    }
+  },
+  "consistency": "pancakes|1044081|1044081|1044081|1044081\ncountry_dups|0\nuncommitted|0\njobs_double_done|0\njobs|DONE|568\nleader_lease|B|2\nleader_events|A:true,B:true\n"
+}

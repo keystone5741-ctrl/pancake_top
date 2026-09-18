@@ -1,0 +1,116 @@
+{
+  "generatedAt": "2026-09-18T06:28:11.994Z",
+  "results": [
+    {
+      "count": 100000,
+      "chunks": 10,
+      "rawBytes": 4001000,
+      "gzip6": {
+        "bytes": 3368200,
+        "ratio": 0.8418395401149713,
+        "compressMs": 109.34583400000002,
+        "decompressMs": 23.770284000000004,
+        "compressMsPerChunk": 10.934583400000003,
+        "decompressMsPerChunk": 2.3770284000000004
+      },
+      "gzip9": {
+        "bytes": 3368200,
+        "ratio": 0.8418395401149713,
+        "compressMs": 118.18188899999996,
+        "decompressMs": 23.11163799999997,
+        "compressMsPerChunk": 11.818188899999996,
+        "decompressMsPerChunk": 2.311163799999997
+      },
+      "brotli4": {
+        "bytes": 3362750,
+        "ratio": 0.8404773806548362,
+        "compressMs": 32.05839500000002,
+        "decompressMs": 31.898041000000035,
+        "compressMsPerChunk": 3.205839500000002,
+        "decompressMsPerChunk": 3.1898041000000035
+      },
+      "brotli9": {
+        "bytes": 3302953,
+        "ratio": 0.8255318670332417,
+        "compressMs": 368.50849300000004,
+        "decompressMs": 32.2496460000001,
+        "compressMsPerChunk": 36.85084930000001,
+        "decompressMsPerChunk": 3.2249646000000096
+      }
+    },
+    {
+      "count": 500000,
+      "chunks": 50,
+      "rawBytes": 20005000,
+      "gzip6": {
+        "bytes": 16793312,
+        "ratio": 0.8394557360659834,
+        "compressMs": 526.602997,
+        "decompressMs": 105.95368099999996,
+        "compressMsPerChunk": 10.53205994,
+        "decompressMsPerChunk": 2.119073619999999
+      },
+      "gzip9": {
+        "bytes": 16793312,
+        "ratio": 0.8394557360659834,
+        "compressMs": 519.5861379999999,
+        "decompressMs": 102.81485699999985,
+        "compressMsPerChunk": 10.391722759999999,
+        "decompressMsPerChunk": 2.0562971399999967
+      },
+      "brotli4": {
+        "bytes": 16759544,
+        "ratio": 0.8377677580604849,
+        "compressMs": 136.61384800000042,
+        "decompressMs": 164.9551459999998,
+        "compressMsPerChunk": 2.7322769600000085,
+        "decompressMsPerChunk": 3.2991029199999957
+      },
+      "brotli9": {
+        "bytes": 16114137,
+        "ratio": 0.8055054736315921,
+        "compressMs": 2076.711645,
+        "decompressMs": 155.68238999999994,
+        "compressMsPerChunk": 41.5342329,
+        "decompressMsPerChunk": 3.113647799999999
+      }
+    },
+    {
+      "count": 1000000,
+      "chunks": 100,
+      "rawBytes": 40010000,
+      "gzip6": {
+        "bytes": 33552700,
+        "ratio": 0.8386078480379905,
+        "compressMs": 1014.5588980000002,
+        "decompressMs": 196.2937520000005,
+        "compressMsPerChunk": 10.145588980000003,
+        "decompressMsPerChunk": 1.962937520000005
+      },
+      "gzip9": {
+        "bytes": 33552700,
+        "ratio": 0.8386078480379905,
+        "compressMs": 1016.694821,
+        "decompressMs": 198.66961700000047,
+        "compressMsPerChunk": 10.166948210000001,
+        "decompressMsPerChunk": 1.9866961700000048
+      },
+      "brotli4": {
+        "bytes": 33498458,
+        "ratio": 0.8372521369657585,
+        "compressMs": 251.448977,
+        "decompressMs": 325.07710700000007,
+        "compressMsPerChunk": 2.51448977,
+        "decompressMsPerChunk": 3.2507710700000008
+      },
+      "brotli9": {
+        "bytes": 31995336,
+        "ratio": 0.7996834791302174,
+        "compressMs": 4398.568557,
+        "decompressMs": 317.31003000000055,
+        "compressMsPerChunk": 43.985685569999994,
+        "decompressMsPerChunk": 3.1731003000000055
+      }
+    }
+  ]
+}

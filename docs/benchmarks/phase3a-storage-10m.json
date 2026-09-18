@@ -1,0 +1,53 @@
+{
+  "count": 10000000,
+  "chunks": 1000,
+  "storageKind": "object",
+  "seedSeconds": 81.786834057,
+  "chunkBytes": 400100000,
+  "uploadMsP50": 3.8080900000004476,
+  "uploadMsP95": 9.131907999999385,
+  "dbSize": "2462 MB",
+  "dbBytes": 2581979663,
+  "tableSizes": [
+    {
+      "t": "chunks",
+      "s": "397 MB"
+    },
+    {
+      "t": "pancakes",
+      "s": "2057 MB"
+    },
+    {
+      "t": "simulation_jobs",
+      "s": "24 kB"
+    },
+    {
+      "t": "world_events",
+      "s": "32 kB"
+    }
+  ],
+  "coldStartMs": 3682.054535000003,
+  "manifestMs": 20.660255000009784,
+  "manifestBytes": 572916,
+  "manifestBytesPerChunk": 572.916,
+  "chunkGetColdMsP50": 1.8963050000020303,
+  "chunkGetColdMsP95": 6.22573900000134,
+  "chunkGetWarmMsP50": 1.8684570000041276,
+  "chunkGetDbMsP50": 2.8480949999939185,
+  "findMs": {
+    "1": 3.8383630000025732,
+    "54321": 2.733980999997584,
+    "5000000": 2.7501180000108434,
+    "9999999": 2.624981000000844,
+    "10000000": 2.5387579999951413
+  },
+  "heightMeters": 100000.65530769646,
+  "rssMB": 344,
+  "storageMetrics": {
+    "requests": 3107,
+    "retries": 0,
+    "bytesUp": 400100000,
+    "bytesDown": 42495026,
+    "msTotal": 8986.736505000124
+  }
+}
