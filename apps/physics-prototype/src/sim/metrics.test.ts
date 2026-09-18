@@ -52,6 +52,16 @@ describe("computeStackingMetrics", () => {
     expect(m.penetration.overlappingPairs).toBe(0);
     expect(m.belowGround).toBe(0);
   });
+  it("splits height efficiency into nominal and geometry-normalized", () => {
+    const t = column(10);
+    // 두께 편차: 모든 팬케이크가 공칭보다 10% 두껍고 그만큼 높이 쌓였다면 nominal 110%, geometry 100%
+    t.tscale.fill(1.1);
+    for (let i = 0; i < 10; i++) t.py[i] = 0.055 + i * 0.11;
+    const m = computeStackingMetrics(t);
+    expect(m.height.efficiency).toBeCloseTo(1.1, 4);
+    expect(m.height.geometryM).toBeCloseTo(0.11, 6);
+    expect(m.height.geometryEfficiency).toBeCloseTo(1.0, 4);
+  });
   it("reports tilt in degrees and spread in metres", () => {
     const m = computeStackingMetrics(column(10, { tiltRad: Math.PI / 18, offset: 0.1 }));
     expect(m.tilt.median).toBeCloseTo(10, 3);

@@ -950,6 +950,12 @@ Next Drop 4m 22s
 
 **상태 (2026-09-17): 완료.** 결과와 확정 파라미터는 [`benchmarks/phase0.5-2026-09-17.md`](./benchmarks/phase0.5-2026-09-17.md).
 
+### Phase 0.75 — Real Device Performance Gate
+
+물리 규칙을 동결한 채, 실제 사용자 기기(Windows Chrome / iPhone Safari / Android Chrome)에서 Tower Renderer 가 어느 규모까지 정상 작동하는지 측정하고 Phase 1 의 렌더링 품질 정책을 정한다. 100k 기본 → 품질 3종 → Find → 전체 뷰 → Drop 애니메이션 → 250k/500k/1M Scale.
+
+**상태 (2026-09-18): 도구·절차 준비 완료, 실제 기기 측정 대기.** [`benchmarks/phase0.75-real-devices.md`](./benchmarks/phase0.75-real-devices.md). 기기 결과가 저장되기 전까지 Phase 1 에 진입하지 않는다.
+
 ### Phase 1 — Million Pancake Rendering Test
 
 물리 시뮬레이션이 아니라 이미 쌓인 객체를 대상으로 100k / 500k / 1M / 5M Instance 렌더링 테스트.

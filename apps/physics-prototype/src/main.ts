@@ -139,6 +139,8 @@ let physMsThisFrame = 0, stepsThisFrame = 0;
 let physTotalMs = 0, physTotalSteps = 0;
 let firstFrameMs = 0;
 let slowFrames = 0;
+let freezeEvents = 0;
+let maxFrameMs = 0;
 const perfMem = (performance as unknown as { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
 
 function fmt(n: number, d = 0): string { return n.toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d }); }
@@ -148,6 +150,8 @@ function result(): Record<string, unknown> {
   const avg = (f: (s: Sample) => number): number => frames.length ? frames.reduce((a, s) => a + f(s), 0) / frames.length : 0;
   const sortedFrame = frames.map((s) => s.frameMs).sort((a, b) => a - b);
   const p95 = sortedFrame.length ? sortedFrame[Math.floor((sortedFrame.length - 1) * 0.95)] : 0;
+  const p99 = sortedFrame.length ? sortedFrame[Math.floor((sortedFrame.length - 1) * 0.99)] : 0;
+  const worst = sortedFrame.length ? sortedFrame[sortedFrame.length - 1] : 0;
   return {
     mode,
     target,
@@ -161,6 +165,14 @@ function result(): Record<string, unknown> {
     fps,
     frameMsAvg: avg((s) => s.frameMs),
     frameMsP95: p95,
+    frameMsP99: p99,
+    frameMsMax: worst,
+    minFps: worst ? 1000 / worst : 0,
+    freezeEvents,
+    maxFreezeMs: maxFrameMs,
+    visibleInstances: visibleInstanceCount(),
+    chunks: tower?.drawGroups ?? 0,
+    backend: backendInfo(),
     physMsPerFrameAvg: avg((s) => s.physMs),
     physMsPerStepAvg: physTotalSteps ? physTotalMs / physTotalSteps : 0,
     physSteps: physTotalSteps,
@@ -173,12 +185,66 @@ function result(): Record<string, unknown> {
     viewport: [innerWidth, innerHeight],
     screen: [screen.width, screen.height],
     userAgent: navigator.userAgent,
+    device: deviceInfo(),
     gpu: gpuName(),
     aborted,
     release: phase === "collapsed" || phase === "releasing" ? { steps: releaseSteps, ms: performance.now() - releaseStartMs } : null,
     replay: replayReport,
     metrics: lastMetrics,
   };
+}
+
+/** WebGL2 / WebGPU 가용성. 렌더러는 현재 WebGL2 (WebGPU 는 Phase 1 결정). */
+function backendInfo(): Record<string, unknown> {
+  const gl = renderer.getContext();
+  return {
+    renderer: "three.WebGLRenderer",
+    api: gl instanceof WebGL2RenderingContext ? "webgl2" : "webgl1",
+    version: String(gl.getParameter(gl.VERSION)),
+    shadingLanguage: String(gl.getParameter(gl.SHADING_LANGUAGE_VERSION)),
+    webgpuAvailable: "gpu" in navigator,
+    antialias: renderer.getContextAttributes()?.antialias ?? null,
+    pixelRatio: renderer.getPixelRatio(),
+  };
+}
+
+/** 기기 정보 (기기명은 사용자가 입력; UA 만으로는 iPhone 모델을 알 수 없다) */
+function deviceInfo(): Record<string, unknown> {
+  const nav = navigator as Navigator & { userAgentData?: { brands: { brand: string; version: string }[]; platform: string; mobile: boolean }; deviceMemory?: number };
+  let name = "";
+  try { name = localStorage.getItem("pd.device") ?? ""; } catch { /* ignore */ }
+  return {
+    name: params.get("device") || name,
+    platform: nav.userAgentData?.platform ?? navigator.platform,
+    mobile: nav.userAgentData?.mobile ?? /Mobi|Android|iPhone|iPad/.test(navigator.userAgent),
+    brands: nav.userAgentData?.brands ?? null,
+    hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+    deviceMemoryGB: nav.deviceMemory ?? null,
+    language: navigator.language,
+    touch: navigator.maxTouchPoints > 0,
+  };
+}
+
+/** 카메라 절두체 안에 중심이 들어오는 인스턴스 수 (결과 기록 시 1회 계산) */
+function visibleInstanceCount(): number {
+  if (!source) return 0;
+  camera.updateMatrixWorld();
+  const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  const p = new THREE.Vector3();
+  let n = 0;
+  for (let i = 0; i < source.spawned; i++) {
+    p.set(source.px[i], source.py[i], source.pz[i]);
+    if (frustum.containsPoint(p)) n++;
+  }
+  return n;
+}
+
+/** 전체 뷰에서 탑 폭이 화면에서 몇 픽셀인지 (직경을 탑 중간 높이 거리에서 투영) */
+function towerWidthPx(): number {
+  const mid = new THREE.Vector3(0, topY / 2, 0);
+  const d = camera.position.distanceTo(mid);
+  const fov = (camera.fov * Math.PI) / 180;
+  return (DEFAULT_CONFIG.diameter * (innerHeight / (2 * d * Math.tan(fov / 2)))) * renderer.getPixelRatio();
 }
 
 function gpuName(): string {
@@ -283,6 +349,27 @@ async function loadTower(url: string): Promise<void> {
   lastMetrics = computeStackingMetrics(d);
 }
 
+/** 서버가 계산한 Drop 파일을 base 위에 붙인다. 붙은 팬케이크는 startReplay(count) 로 낙하 연출한다 (frozen base 는 물리에 넣지 않는다). */
+async function loadDrop(url: string): Promise<number> {
+  if (!source) throw new Error("load a base tower first");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`load ${url}: ${res.status}`);
+  const d = decodeTower(await res.arrayBuffer());
+  const base = source;
+  const n = base.spawned + d.count;
+  const cat = (a: Float32Array, b: Float32Array): Float32Array => { const out = new Float32Array(n); out.set(a.subarray(0, base.spawned)); out.set(b, base.spawned); return out; };
+  const merged: InstanceSource = {
+    px: cat(base.px, d.px), py: cat(base.py, d.py), pz: cat(base.pz, d.pz),
+    qx: cat(base.qx, d.qx), qy: cat(base.qy, d.qy), qz: cat(base.qz, d.qz), qw: cat(base.qw, d.qw),
+    scale: cat(base.scale, d.scale), tscale: cat(base.tscale, d.tscale),
+    state: new Uint8Array(n).fill(STATE_SURFACE), spawned: n, dirty: Array.from({ length: n }, (_, i) => i),
+  };
+  useSource(merged, { diameter: d.diameter, thickness: d.thickness, unitCm: d.unitCm }, "loaded");
+  dropCount = d.count;
+  return d.count;
+}
+let dropCount = 0;
+
 /** 물리 없이 절차적으로 쌓은 탑 (실제 기기 렌더링 한계 측정용: 500k / 1M) */
 function syntheticTower(n: number): void {
   const rng = createRng(42);
@@ -308,15 +395,24 @@ function syntheticTower(n: number): void {
 // ---------------------------------------------------------------- Find Pancake / 카메라 뷰
 let flyTo: { target: THREE.Vector3; pos: THREE.Vector3 } | null = null;
 
+let lastFind: Record<string, unknown> | null = null;
 function findPancake(id: number): boolean {
   if (!tower || !source) return false;
+  const t0 = performance.now();
   const p = tower.locate(id);
+  const lookupMs = performance.now() - t0;
   if (!p) return false;
   tower.highlight(id, source);
   ui.follow.checked = false;
   flyTo = { target: p.clone(), pos: p.clone().add(new THREE.Vector3(2.5, 1.2, 2.5)) };
+  flyStartMs = performance.now();
+  // 검증: index 로 읽은 위치가 서버 배열 값과 같은가 (chunk = floor(id/10000), instance = id % 10000)
+  const ok = Math.abs(p.x - source.px[id]) < 1e-5 && Math.abs(p.y - source.py[id]) < 1e-5 && Math.abs(p.z - source.pz[id]) < 1e-5;
+  lastFind = { id, chunk: Math.floor(id / 10000), instance: id % 10000, lookupMs, position: [p.x, p.y, p.z], correct: ok, heightM: (p.y * unitCm) / 100 };
   return true;
 }
+let flyStartMs = 0;
+let lastFlyMs = 0;
 
 function setView(view: string): void {
   ui.follow.checked = false;
@@ -447,7 +543,7 @@ function frame(): void {
   if (flyTo) {
     controls.target.lerp(flyTo.target, 0.1);
     camera.position.lerp(flyTo.pos, 0.1);
-    if (camera.position.distanceTo(flyTo.pos) < 0.01) flyTo = null;
+    if (camera.position.distanceTo(flyTo.pos) < 0.01) { flyTo = null; lastFlyMs = performance.now() - flyStartMs; }
   } else if (source && ui.follow.checked && phase !== "idle" && mode === "physics") {
     camTarget.set(0, topY + 1, 0);
     controls.target.lerp(camTarget, 0.08);
@@ -460,7 +556,8 @@ function frame(): void {
 
   if (!firstFrameMs) firstFrameMs = performance.now() - t0;
   samples.push({ frameMs, physMs: physMsThisFrame, steps: stepsThisFrame });
-  if (samples.length > 600) samples.shift();
+  if (samples.length > 1800) samples.shift();
+  if (frameMs > 1000) { freezeEvents++; maxFrameMs = Math.max(maxFrameMs, frameMs); }
   fpsAccum += frameMs; fpsCount++;
   if (now - fpsTimer > 500) { fps = 1000 / (fpsAccum / fpsCount); fpsAccum = 0; fpsCount = 0; fpsTimer = now; updateStats(); }
 
@@ -474,15 +571,55 @@ function frame(): void {
   requestAnimationFrame(frame);
 }
 
+// ---------------------------------------------------------------- 스위트 러너 API
+export interface AppApi {
+  params: URLSearchParams;
+  loadTower: (url: string) => Promise<void>;
+  loadDrop: (url: string) => Promise<number>;
+  syntheticTower: (n: number) => void;
+  findPancake: (id: number) => boolean;
+  lastFind: () => Record<string, unknown> | null;
+  flying: () => boolean;
+  lastFlyMs: () => number;
+  setView: (v: string) => void;
+  startReplay: (n: number) => void;
+  replaying: () => boolean;
+  replayReport: () => Record<string, unknown> | null;
+  dropCount: () => number;
+  result: () => Record<string, unknown>;
+  towerWidthPx: () => number;
+  aborted: () => boolean;
+  resetSamples: () => void;
+  phase: () => string;
+  start: () => void;
+}
+const api: AppApi = {
+  params,
+  loadTower, loadDrop, syntheticTower, findPancake,
+  lastFind: () => lastFind, flying: () => flyTo !== null, lastFlyMs: () => lastFlyMs,
+  setView, startReplay, replaying: () => replay !== null, replayReport: () => replayReport, dropCount: () => dropCount,
+  result, towerWidthPx, aborted: () => aborted,
+  resetSamples: () => { samples.length = 0; freezeEvents = 0; maxFrameMs = 0; },
+  phase: () => phase, start,
+};
+
 // ---------------------------------------------------------------- 시작
 declare global { interface Window { __RESULT?: Record<string, unknown>; __READY?: boolean; __sim?: TowerSim | null; __find?: (id: number) => boolean; __view?: (v: string) => void; __replay?: (n: number) => void } }
 async function setup(): Promise<void> {
   await RAPIER.init();
+  if (params.get("suite")) {
+    const { runSuite } = await import("./suite");
+    requestAnimationFrame(frame);
+    await runSuite(api);
+    return;
+  }
   const load = params.get("load");
   const synthetic = params.get("synthetic");
   if (load) await loadTower(load);
   else if (synthetic) syntheticTower(Number(synthetic));
   else reset();
+  const drop = params.get("drop");
+  if (drop) await loadDrop(drop);
   window.__sim = sim;
   window.__find = findPancake;
   window.__view = setView;

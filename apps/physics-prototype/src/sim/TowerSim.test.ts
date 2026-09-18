@@ -79,6 +79,31 @@ describe("TowerSim stacking (natural preset)", () => {
     sim.free();
   });
 
+  it("continues stacking on top of a loaded base tower without re-simulating it", () => {
+    const a = build(200);
+    const base = a.snapshot();
+    const topBefore = a.topY;
+    a.free();
+    const sim = new TowerSim(RAPIER, 200 + 50, { ...PRESETS.natural, seed: 99 });
+    expect(sim.loadBase(base, 16)).toBe(200);
+    expect(sim.surfaceCount).toBe(16);
+    expect(sim.frozen).toBe(184);
+    expect(sim.topY).toBeCloseTo(topBefore, 5);
+    sim.queueBatch(50);
+    let guard = 0;
+    while (sim.batchInFlight && guard++ < 50000) sim.step();
+    expect(sim.spawned).toBe(250);
+    expect(sim.activeCount).toBe(0);
+    expect(sim.leakCount).toBe(0);
+    expect(sim.topY).toBeGreaterThan(topBefore + 0.1 * 40);
+    // base 팬케이크는 그대로
+    for (let i = 0; i < 200; i += 17) expect(sim.py[i]).toBe(base.py[i]);
+    const drop = sim.snapshot(200);
+    expect(drop.count).toBe(50);
+    expect(drop.py[0]).toBeGreaterThan(topBefore);
+    sim.free();
+  });
+
   // Release(붕괴) 경로는 Phase 0.5 범위 밖이다. Phase 0 스트레스 테스트 결과로만 보존하며, Rapier 0.20 이 간헐적으로
   // 패닉(unreachable)을 일으키는 문제는 정상 Drop 경로에서 재현되지 않는 한 조사하지 않는다 (phase0.5 문서 미해결 리스크).
 });

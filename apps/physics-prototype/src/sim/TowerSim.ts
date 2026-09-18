@@ -319,9 +319,49 @@ export class TowerSim {
     return Math.sqrt(r2);
   }
 
-  /** 정착한 팬케이크만 담은 스냅샷 (계측/파일 저장용). 서버가 클라이언트에 주는 것과 같은 내용. */
-  snapshot(): TowerData {
+  /**
+   * 기존 탑(서버 결과)을 불러와 그 위에 이어서 쌓는다 (Phase 0.75 §10: frozen 탑을 다시 물리에 넣지 않는다).
+   * 상위 surfaceCount 장만 fixed body(SURFACE) 로 만들고 나머지는 FROZEN(transform 만). 높이맵은 전부 반영.
+   * 물리 규칙은 그대로이며 초기 상태만 다르다. capacity 는 base.count + 이어서 쌓을 개수 이상이어야 한다.
+   */
+  loadBase(base: TowerData, surfaceCount = 64): number {
+    if (this.spawnedCount !== 0) throw new Error("loadBase must be called on an empty sim");
+    if (base.count > this.capacity) throw new Error("capacity too small for base tower");
+    const n = base.count;
+    this.px.set(base.px.subarray(0, n)); this.py.set(base.py.subarray(0, n)); this.pz.set(base.pz.subarray(0, n));
+    this.qx.set(base.qx.subarray(0, n)); this.qy.set(base.qy.subarray(0, n)); this.qz.set(base.qz.subarray(0, n)); this.qw.set(base.qw.subarray(0, n));
+    this.scale.set(base.scale.subarray(0, n)); this.tscale.set(base.tscale.subarray(0, n));
+    this.spawnedCount = n;
+    const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => this.py[b] - this.py[a]);
+    const surface = new Set(order.slice(0, surfaceCount));
+    for (let id = 0; id < n; id++) {
+      if (surface.has(id)) {
+        const body = this.createBody(id, this.px[id], this.py[id], this.pz[id], { x: this.qx[id], y: this.qy[id], z: this.qz[id], w: this.qw[id] });
+        body.setBodyType(this.R.RigidBodyType.Fixed, false);
+        this.state[id] = STATE_SURFACE;
+        this.surfaceIds.add(id);
+      } else {
+        this.state[id] = STATE_FROZEN;
+        this.frozenCount++;
+      }
+      this.addToCell(id);
+      this.dirty.push(id);
+    }
+    this.recomputeTop();
+    return n;
+  }
+
+  /** 정착한 팬케이크만 담은 스냅샷 (계측/파일 저장용). 서버가 클라이언트에 주는 것과 같은 내용. from 을 주면 그 id 부터. */
+  snapshot(from = 0): TowerData {
     const n = this.spawnedCount;
+    if (from > 0) {
+      return {
+        count: n - from, diameter: this.cfg.diameter, thickness: this.cfg.thickness, unitCm: this.cfg.unitCm,
+        px: this.px.slice(from, n), py: this.py.slice(from, n), pz: this.pz.slice(from, n),
+        qx: this.qx.slice(from, n), qy: this.qy.slice(from, n), qz: this.qz.slice(from, n), qw: this.qw.slice(from, n),
+        scale: this.scale.slice(from, n), tscale: this.tscale.slice(from, n),
+      };
+    }
     return {
       count: n,
       diameter: this.cfg.diameter,

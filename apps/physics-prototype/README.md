@@ -20,7 +20,10 @@ bench/run.ts        Node 벤치마크 (쌓기 + 계측 + 덤프 + Release)
 bench/schedule.ts   10분 Drop cutoff 검증: 100k 반복 측정 (p50/p95/실패/RSS)
 bench/browser.ts    Playwright 물리 모드 자동 측정
 bench/shots.ts      Playwright 프리셋 비교/100k 장면 스크린샷 + Replay 수렴 검증
+bench/suite.ts      Playwright 로 Device Suite 전체를 headless 자동 실행 (절차 검증)
+src/suite.ts        Device Suite 러너 (localStorage 에 진행 상태, 크래시 감지, 등급 입력, 결과 페이지)
 public/towers/      bench --dump 산출물 (.bin, git 제외). 브라우저 로드 모드가 읽는다.
+public/drops/       bench --base ... --dump 산출물: 100k 위 새 Drop 의 서버 Transform (git 제외). `pnpm prepare:devices` 로 생성.
 ```
 
 ## 실행
@@ -50,8 +53,10 @@ pnpm --filter physics-prototype build && pnpm --filter physics-prototype exec ts
 | `replay=2000` | 로드 모드에서 마지막 2,000 장을 클라이언트 낙하 연출 후 서버 값으로 수렴하는지 검증 |
 | `preset=stable\|natural\|loose` | 세계 규칙 프리셋 |
 | `release=1` | 물리 모드 완료 후 Release (Phase 0 스트레스 테스트) |
+| `drop=drops/100k-drop-1000.bin` | 로드한 탑 위에 서버가 계산한 Drop 파일을 붙임. `replay=N` 또는 스위트가 낙하 연출 |
+| `suite=all&device=NAME` | **Phase 0.75 Device Suite**: 기본 100k → 품질 3종 → Find → 전체 뷰 → Drop 4종 → Scale 250k/500k/1M. 단계마다 reload, 체감 등급 입력. `suite=results` 결과/JSON, `suite=reset` 삭제, `grade=auto` 자동 등급(headless) |
 
-실제 기기 측정 절차: `pnpm dev` 로 띄운 주소를 기기에서 열고 `?synthetic=100000&auto=1&quality=standard` → `500000` → `1000000` 순으로 실행, 각 완료 후 EXPORT JSON. 프레임이 3초를 넘거나 heap 이 한계에 가까우면 앱이 스스로 중단하고 마지막 정상 결과를 남긴다 (`aborted: true`).
+실제 기기 측정 절차 (Phase 0.75): `pnpm prepare:devices` → `pnpm dev` → 기기에서 `http://<PC IP>:5173/?suite=all`. 수동 단일 측정은 `pnpm dev` 로 띄운 주소를 기기에서 열고 `?synthetic=100000&auto=1&quality=standard` → `500000` → `1000000` 순으로 실행, 각 완료 후 EXPORT JSON. 프레임이 3초를 넘거나 heap 이 한계에 가까우면 앱이 스스로 중단하고 마지막 정상 결과를 남긴다 (`aborted: true`).
 
 ## 단위
 

@@ -6,3 +6,4 @@ dist/
 .env
 .env.*
 apps/physics-prototype/public/towers/*.bin
+apps/physics-prototype/public/drops/*.bin

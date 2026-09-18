@@ -30,7 +30,12 @@ export interface Quantiles {
 
 export interface StackingMetrics {
   count: number;
-  height: { towerM: number; idealM: number; efficiency: number };
+  /**
+   * towerM: 실측 최고점. idealM: 공칭 두께 × 개수 (nominal). geometryM: 각 팬케이크의 실제 두께(tscale 반영) 합.
+   * efficiency = nominal 기준 (Phase 0/0.5 와 동일 정의). geometryEfficiency = 실제 두께 합 기준.
+   * 두 값의 차이가 두께 편차 정의 때문인지, 배치(기울기·공기층) 때문인지 구분한다 (Phase 0.75 §2).
+   */
+  height: { towerM: number; idealM: number; efficiency: number; geometryM: number; geometryEfficiency: number };
   /** 중심축(원점)으로부터 중심점 거리 (m) */
   spread: Quantiles & { p90: number; p95: number };
   /** 수평면 대비 기울기 (deg) */
@@ -69,11 +74,13 @@ export function computeStackingMetrics(s: TowerSnapshot, penetrationThreshold = 
 
   let topY = 0;
   let belowGround = 0;
+  let geometryHeight = 0;
   const spread = new Float64Array(n);
   const tilt = new Float64Array(n);
   const ys = new Float64Array(n);
   ids.forEach((id, k) => {
     const half = (s.thickness * s.tscale[id]) / 2;
+    geometryHeight += half * 2;
     const top = s.py[id] + half;
     if (top > topY) topY = top;
     if (s.py[id] - half < -s.thickness * penetrationThreshold) belowGround++;
@@ -132,7 +139,13 @@ export function computeStackingMetrics(s: TowerSnapshot, penetrationThreshold = 
 
   return {
     count: n,
-    height: { towerM: topY * toM, idealM: n * s.thickness * toM, efficiency: n ? (topY * toM) / (n * s.thickness * toM) : 0 },
+    height: {
+      towerM: topY * toM,
+      idealM: n * s.thickness * toM,
+      efficiency: n ? topY / (n * s.thickness) : 0,
+      geometryM: geometryHeight * toM,
+      geometryEfficiency: geometryHeight > 0 ? topY / geometryHeight : 0,
+    },
     spread: { median: quantile(spread, 0.5) * toM, p90: quantile(spread, 0.9) * toM, p95: quantile(spread, 0.95) * toM, max: (n ? spread[n - 1] : 0) * toM },
     tilt: { median: quantile(tilt, 0.5), p90: quantile(tilt, 0.9), p95: quantile(tilt, 0.95), max: n ? tilt[n - 1] : 0 },
     layerSpacing: { median: quantile(gaps, 0.5), p05: quantile(gaps, 0.05), p95: quantile(gaps, 0.95) },
@@ -145,7 +158,7 @@ export function computeStackingMetrics(s: TowerSnapshot, penetrationThreshold = 
 export function formatMetrics(m: StackingMetrics): string {
   const f = (v: number, d = 2): string => v.toFixed(d);
   return [
-    `height ${f(m.height.towerM)} m / ideal ${f(m.height.idealM)} m (${f(m.height.efficiency * 100, 1)}%)`,
+    `height ${f(m.height.towerM)} m / nominal ${f(m.height.idealM)} m (${f(m.height.efficiency * 100, 1)}%) / geometry ${f(m.height.geometryM)} m (${f(m.height.geometryEfficiency * 100, 1)}%)`,
     `spread(m) median ${f(m.spread.median, 3)} p90 ${f(m.spread.p90, 3)} p95 ${f(m.spread.p95, 3)} max ${f(m.spread.max, 3)}`,
     `tilt(deg) median ${f(m.tilt.median)} p90 ${f(m.tilt.p90)} p95 ${f(m.tilt.p95)} max ${f(m.tilt.max)}`,
     `layer gap/th median ${f(m.layerSpacing.median, 3)} p05 ${f(m.layerSpacing.p05, 3)} p95 ${f(m.layerSpacing.p95, 3)}`,

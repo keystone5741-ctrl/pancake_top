@@ -9,9 +9,9 @@
  * 렌더링 지표(FPS, GPU)는 브라우저 앱(`pnpm dev`)에서 측정한다.
  */
 import RAPIER from "@dimforge/rapier3d-compat";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { TowerSim, DEFAULT_CONFIG, PRESETS, encodeTower, formatMetrics, type SimConfig, type PresetName, type StackingMetrics } from "../src/sim";
+import { TowerSim, DEFAULT_CONFIG, PRESETS, encodeTower, decodeTower, formatMetrics, type SimConfig, type PresetName, type StackingMetrics, type TowerData } from "../src/sim";
 
 /** 1 unit = 1 m 프리셋: 실제 치수 + 실제 중력, Rapier lengthUnit 으로 허용오차 스케일링 */
 const METERS: Partial<SimConfig> = {
@@ -28,6 +28,8 @@ interface Args {
   out?: string;
   dump?: string;
   preset?: PresetName;
+  /** 기존 탑 파일 위에 이어서 쌓는다. targets 는 새로 쌓을 개수, dump 는 새 팬케이크만 저장. */
+  base?: string;
   cfg: Partial<SimConfig>;
 }
 
@@ -43,6 +45,7 @@ function parseArgs(argv: string[]): Args {
       case "--release-max-steps": a.releaseMaxSteps = Number(v); i++; break;
       case "--out": a.out = v; i++; break;
       case "--dump": a.dump = v; i++; break;
+      case "--base": a.base = v; i++; break;
       case "--preset": a.preset = v as PresetName; Object.assign(a.cfg, PRESETS[v as PresetName]); i++; break;
       case "--batch": a.cfg.batchSize = Number(v); i++; break;
       case "--spawn-per-step": a.cfg.spawnPerStep = Number(v); i++; break;
@@ -116,7 +119,8 @@ function pct(sorted: number[], p: number): number {
   return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
 }
 
-function runBuild(sim: TowerSim, target: number, log: (s: string) => void): RunResult["build"] {
+function runBuild(sim: TowerSim, target: number, log: (s: string) => void, from = 0): RunResult["build"] {
+  const goal = from + target;
   const stepTimes: number[] = [];
   let maxActive = 0;
   let maxSurface = 0;
@@ -124,9 +128,9 @@ function runBuild(sim: TowerSim, target: number, log: (s: string) => void): RunR
   const t0 = performance.now();
   let lastLog = t0;
 
-  while (sim.spawned < target || sim.batchInFlight) {
-    if (!sim.batchInFlight && sim.spawned < target) {
-      sim.queueBatch(Math.min(sim.cfg.batchSize, target - sim.spawned));
+  while (sim.spawned < goal || sim.batchInFlight) {
+    if (!sim.batchInFlight && sim.spawned < goal) {
+      sim.queueBatch(Math.min(sim.cfg.batchSize, goal - sim.spawned));
       batches++;
     }
     const s = sim.step();
@@ -229,16 +233,23 @@ async function main(): Promise<void> {
   console.log(`Rapier ${RAPIER.version()} · Node ${process.version}`);
   console.log(`config: ${JSON.stringify({ ...DEFAULT_CONFIG, ...args.cfg })}\n`);
 
+  let base: TowerData | null = null;
+  if (args.base) {
+    const buf = readFileSync(args.base);
+    base = decodeTower(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+    console.log(`base tower: ${args.base} (${base.count} pancakes, top ${(Math.max(...Array.from(base.py)) * base.unitCm / 100).toFixed(2)} m)\n`);
+  }
   for (const target of args.targets) {
-    console.log(`=== ${target.toLocaleString()} pancakes ===`);
-    const sim = new TowerSim(RAPIER, target, args.cfg);
-    const build = runBuild(sim, target, log);
+    console.log(`=== ${target.toLocaleString()} pancakes${base ? ` on top of ${base.count.toLocaleString()}` : ""} ===`);
+    const sim = new TowerSim(RAPIER, (base?.count ?? 0) + target, args.cfg);
+    const from = base ? sim.loadBase(base) : 0;
+    const build = runBuild(sim, target, log, from);
     const r: RunResult = { target, preset: args.preset, config: sim.cfg, build, metrics: sim.metrics() };
     console.log(formatMetrics(r.metrics!).split("\n").map((l) => "  " + l).join("\n"));
     if (args.dump) {
       const name = args.dump.replace("{target}", String(target)).replace("{preset}", args.preset ?? "default");
       mkdirSync(resolve(name, ".."), { recursive: true });
-      writeFileSync(name, Buffer.from(encodeTower(sim.snapshot())));
+      writeFileSync(name, Buffer.from(encodeTower(sim.snapshot(from))));
       console.log(`  dumped ${name}`);
     }
     console.log(

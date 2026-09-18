@@ -11,7 +11,9 @@
     "bench": "tsx bench/run.ts",
     "test": "vitest run",
     "bench:schedule": "tsx bench/schedule.ts",
-    "bench:browser": "tsx bench/browser.ts"
+    "bench:browser": "tsx bench/browser.ts",
+    "prepare:devices": "tsx bench/run.ts --targets 100000 --preset natural --dump public/towers/100000-natural.bin && tsx bench/run.ts --targets 100,1000,2000,5000 --preset natural --seed 777 --base public/towers/100000-natural.bin --dump 'public/drops/100k-drop-{target}.bin'",
+    "suite:headless": "tsx bench/suite.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

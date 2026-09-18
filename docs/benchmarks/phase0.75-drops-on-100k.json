@@ -1,0 +1,423 @@
+{
+  "generatedAt": "2026-09-18T00:49:50.499Z",
+  "node": "v22.22.2",
+  "rapier": "0.20.0",
+  "results": [
+    {
+      "target": 100,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 777,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 129.180388,
+        "steps": 116,
+        "msPerStep": {
+          "avg": 1.106472577586203,
+          "p50": 0.48685999999997875,
+          "p95": 1.5041829999998981,
+          "max": 38.353117
+        },
+        "msPerPancake": 1.29180388,
+        "simSeconds": 1.9333333333333333,
+        "realtimeRatio": 14.966152085975569,
+        "batches": 1,
+        "maxActive": 70,
+        "maxSurface": 64,
+        "finalSurface": 7,
+        "finalFrozen": 200029,
+        "leaks": 0,
+        "towerHeightM": 1014.5011863964796,
+        "idealHeightM": 1,
+        "heightEfficiency": 1014.5011863964796,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 232.2109375,
+        "heapMB": 25.933929443359375
+      },
+      "metrics": {
+        "count": 100100,
+        "height": {
+          "towerM": 1014.5011863964796,
+          "idealM": 1001,
+          "efficiency": 1.0134876986977817,
+          "geometryM": 1000.986665993937,
+          "geometryEfficiency": 1.0135011992283867
+        },
+        "spread": {
+          "median": 0.02734875416854903,
+          "p90": 0.04903300024058214,
+          "p95": 0.05524979115185466,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.2493933810901314,
+          "p90": 4.363290875925138,
+          "p95": 5.264480089131177,
+          "max": 12.28191283536528
+        },
+        "layerSpacing": {
+          "median": 1.007080078125,
+          "p05": 0.927734375,
+          "p95": 1.11572265625
+        },
+        "penetration": {
+          "overlappingPairs": 3442,
+          "max": 0.23996762768906166,
+          "p95": 0.10693589720167401,
+          "checkedPairs": 566247
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 1000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 777,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 511.5965719999999,
+        "steps": 917,
+        "msPerStep": {
+          "avg": 0.5564027251908398,
+          "p50": 0.5173560000000634,
+          "p95": 0.9498759999999038,
+          "max": 20.504133000000138
+        },
+        "msPerPancake": 0.511596572,
+        "simSeconds": 15.283333333333333,
+        "realtimeRatio": 29.873799336820685,
+        "batches": 2,
+        "maxActive": 246,
+        "maxSurface": 64,
+        "finalSurface": 6,
+        "finalFrozen": 200930,
+        "leaks": 0,
+        "towerHeightM": 1023.6281153911352,
+        "idealHeightM": 10,
+        "heightEfficiency": 102.36281153911352,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 306.796875,
+        "heapMB": 49.9105224609375
+      },
+      "metrics": {
+        "count": 101000,
+        "height": {
+          "towerM": 1023.6281153911352,
+          "idealM": 1010,
+          "efficiency": 1.0134931835555794,
+          "geometryM": 1009.9779886335218,
+          "geometryEfficiency": 1.0135152715318891
+        },
+        "spread": {
+          "median": 0.02731479843091413,
+          "p90": 0.04897432803966676,
+          "p95": 0.055205272671167066,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.2497924458091276,
+          "p90": 4.36501628641391,
+          "p95": 5.2654054431023205,
+          "max": 12.28191283536528
+        },
+        "layerSpacing": {
+          "median": 1.00677490234375,
+          "p05": 0.927734375,
+          "p95": 1.11572265625
+        },
+        "penetration": {
+          "overlappingPairs": 3481,
+          "max": 0.23996762768906166,
+          "p95": 0.10691085562577987,
+          "checkedPairs": 571324
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 2000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 777,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 862.385861,
+        "steps": 1834,
+        "msPerStep": {
+          "avg": 0.46906062104688756,
+          "p50": 0.4505260000000817,
+          "p95": 0.835168000000067,
+          "max": 10.61153000000013
+        },
+        "msPerPancake": 0.4311929305,
+        "simSeconds": 30.566666666666666,
+        "realtimeRatio": 35.44430405111508,
+        "batches": 4,
+        "maxActive": 246,
+        "maxSurface": 64,
+        "finalSurface": 6,
+        "finalFrozen": 201930,
+        "leaks": 0,
+        "towerHeightM": 1033.7321150922776,
+        "idealHeightM": 20,
+        "heightEfficiency": 51.68660575461388,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 308.22265625,
+        "heapMB": 42.9189453125
+      },
+      "metrics": {
+        "count": 102000,
+        "height": {
+          "towerM": 1033.7321150922776,
+          "idealM": 1020,
+          "efficiency": 1.0134628579336054,
+          "geometryM": 1019.9599124079991,
+          "geometryEfficiency": 1.0135026901711892
+        },
+        "spread": {
+          "median": 0.02745077406010933,
+          "p90": 0.04929368961331129,
+          "p95": 0.055576959277367645,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.24977856758998,
+          "p90": 4.364248380408511,
+          "p95": 5.2654054431023205,
+          "max": 12.28191283536528
+        },
+        "layerSpacing": {
+          "median": 1.00616455078125,
+          "p05": 0.927734375,
+          "p95": 1.11572265625
+        },
+        "penetration": {
+          "overlappingPairs": 3515,
+          "max": 0.23996762768906166,
+          "p95": 0.10691085562577987,
+          "checkedPairs": 577016
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    },
+    {
+      "target": 5000,
+      "preset": "natural",
+      "config": {
+        "unitCm": 10,
+        "diameter": 1,
+        "thickness": 0.1,
+        "sizeJitter": 0.05,
+        "thicknessJitter": 0.1,
+        "gravity": -98.1,
+        "friction": 0.9,
+        "restitution": 0,
+        "angularDamping": 2,
+        "linearDamping": 2,
+        "density": 1,
+        "batchSize": 500,
+        "spawnPerStep": 2,
+        "spawnSpread": 0.2,
+        "spawnTilt": 0.15,
+        "spawnRecenter": 0.1,
+        "spawnClearance": 3,
+        "settleLinVel": 0.2,
+        "settleAngVel": 0.6,
+        "settleFrames": 10,
+        "freezeDepth": 0.6,
+        "freezeEnabled": true,
+        "edgeRadius": 0.03,
+        "spawnMode": "top",
+        "stickOnContact": true,
+        "stickMaxSpeed": 1000000000,
+        "stickMaxPenetration": 0.05,
+        "drape": 0.6,
+        "settleTiltJitter": 0.06,
+        "solverIterations": 4,
+        "contactHz": 30,
+        "releaseKick": 5,
+        "lengthUnit": 0,
+        "ccd": true,
+        "ccdSubsteps": 1,
+        "dt": 0.016666666666666666,
+        "seed": 777,
+        "maxStepsPerBatch": 3000
+      },
+      "build": {
+        "totalMs": 1995.2718009999999,
+        "steps": 4585,
+        "msPerStep": {
+          "avg": 0.43426313217012263,
+          "p50": 0.42467300000043906,
+          "p95": 0.7878679999998894,
+          "max": 11.387100000000373
+        },
+        "msPerPancake": 0.39905436019999996,
+        "simSeconds": 76.41666666666667,
+        "realtimeRatio": 38.29887568619363,
+        "batches": 10,
+        "maxActive": 246,
+        "maxSurface": 64,
+        "finalSurface": 7,
+        "finalFrozen": 204929,
+        "leaks": 0,
+        "towerHeightM": 1064.1258512216807,
+        "idealHeightM": 50,
+        "heightEfficiency": 21.282517024433613,
+        "footprintRadiusM": 0.09353963480344954,
+        "rssMB": 331.359375,
+        "heapMB": 63.209861755371094
+      },
+      "metrics": {
+        "count": 105000,
+        "height": {
+          "towerM": 1064.1258512216807,
+          "idealM": 1050,
+          "efficiency": 1.0134531916396958,
+          "geometryM": 1049.9638790065078,
+          "geometryEfficiency": 1.0134880565877877
+        },
+        "spread": {
+          "median": 0.027610833049146195,
+          "p90": 0.04957814690498955,
+          "p95": 0.05600696517544734,
+          "max": 0.09353963480344955
+        },
+        "tilt": {
+          "median": 2.24914639110848,
+          "p90": 4.361782450136006,
+          "p95": 5.261714502818201,
+          "max": 12.28191283536528
+        },
+        "layerSpacing": {
+          "median": 1.005859375,
+          "p05": 0.927734375,
+          "p95": 1.11572265625
+        },
+        "penetration": {
+          "overlappingPairs": 3639,
+          "max": 0.23996762768906166,
+          "p95": 0.106665822451293,
+          "checkedPairs": 593968
+        },
+        "belowGround": 0,
+        "nonFinite": 0
+      }
+    }
+  ]
+}

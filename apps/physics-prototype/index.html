@@ -27,12 +27,31 @@
       #big .h { font-size: 16px; color: #f6c453; }
       #big .s { font-size: 11px; color: #8a8f9c; }
       body.shot #panel { display: none; }
+      #banner { display: none; position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: 90%; padding: 10px 16px; background: rgba(246,196,83,.95); color: #1a1400; border-radius: 8px; font-weight: 700; z-index: 20; }
+      #grade { display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(420px, 92%); padding: 16px; background: #151821; border: 1px solid #2a2e3a; border-radius: 10px; z-index: 30; }
+      #grade h2 { margin: 0 0 8px; font-size: 13px; color: #f6c453; }
+      #grade .g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+      #grade button { padding: 12px; font-size: 14px; }
+      #grade input { width: 100%; box-sizing: border-box; background: #0d0f14; color: #e8e6e1; border: 1px solid #2a2e3a; border-radius: 4px; padding: 8px; font: inherit; }
+      #results { display: none; position: fixed; inset: 12px; overflow: auto; padding: 16px; background: rgba(13,15,20,.96); border: 1px solid #2a2e3a; border-radius: 10px; z-index: 25; }
+      #results table { border-collapse: collapse; width: 100%; font-size: 12px; }
+      #results th, #results td { border-bottom: 1px solid #2a2e3a; padding: 4px 6px; text-align: left; white-space: nowrap; }
+      #results .st-done { color: #7ed957; } #results .st-crashed, #results .st-aborted { color: #ff6b6b; } #results .st-skipped { color: #8a8f9c; }
+      #results textarea { width: 100%; height: 200px; margin-top: 8px; background: #0d0f14; color: #cfd3dc; border: 1px solid #2a2e3a; font: 11px ui-monospace, monospace; }
+      #results .btn { display: inline-block; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
+      #results .hint { color: #8a8f9c; }
       @media (max-width: 640px) { #panel { width: calc(100% - 24px); max-height: 45%; } #big { display: none; } }
     </style>
   </head>
   <body>
     <div id="app"></div>
     <div id="big"><div class="n" id="bigCount">0 🥞</div><div class="h" id="bigHeight">0.00 m</div><div class="s" id="bigState"></div></div>
+    <div id="banner"></div>
+    <div id="grade"><h2 id="gradeTitle">체감</h2>
+      <div class="g"><button id="grade-good">GOOD</button><button id="grade-acceptable" class="secondary">ACCEPTABLE</button><button id="grade-poor" class="secondary">POOR</button><button id="grade-fail" class="secondary">FAIL</button></div>
+      <input id="gradeNote" placeholder="메모 (선택): 발열, 끊김, 겹침 보임 등" />
+    </div>
+    <div id="results"></div>
     <div id="panel">
       <h1>PANCAKE DROP · PHASE 0</h1>
       <h2>RUN</h2>
@@ -60,6 +79,8 @@
         <button id="reset" class="secondary">RESET</button>
         <button id="export" class="secondary">EXPORT JSON</button>
       </div>
+      <h2>PHASE 0.75 DEVICE SUITE</h2>
+      <div class="buttons"><a class="secondary btn" href="/?suite=all" style="padding:6px 10px;border-radius:6px;text-decoration:none;background:#2a2e3a;color:#e8e6e1">RUN DEVICE SUITE</a><a class="secondary btn" href="/?suite=results" style="padding:6px 10px;border-radius:6px;text-decoration:none;background:#2a2e3a;color:#e8e6e1">RESULTS</a></div>
       <h2>STATS</h2>
       <div id="stats">—</div>
     </div>
