@@ -29,6 +29,9 @@ export class WorldStore {
   private current: PancakeTransformSet | null = null;
   private currentId = -1;
   metrics = { chunkWriteMs: 0, chunkWrites: 0, commitMs: 0, commits: 0, manifestMs: 0, snapshots: 0, recoveredFiles: 0 };
+  /** commit / refresh / snapshot 직렬화. refresh 가 커밋 도중 끼어들면 stale 한 world_state·current chunk 로 덮어써 다음 커밋이 어긋난다 (batch 벤치에서 실제 발생). */
+  private lock: Promise<unknown> = Promise.resolve();
+  private serialized<T>(fn: () => Promise<T>): Promise<T> { const run = this.lock.then(fn, fn); this.lock = run.catch(() => undefined); return run; }
 
   constructor(readonly db: Db, readonly storage: ChunkStorage, readonly cfg: ServerConfig) {
     this.towerConfig = { ...DEFAULT_TOWER_CONFIG, chunkSize: cfg.chunkSize };
@@ -87,7 +90,8 @@ export class WorldStore {
   }
 
   // ---------------------------------------------------------------- commit
-  async commit(input: CommitInput): Promise<{ version: number; chunkIds: number[] }> {
+  commit(input: CommitInput): Promise<{ version: number; chunkIds: number[] }> { return this.serialized(() => this.commitLocked(input)); }
+  private async commitLocked(input: CommitInput): Promise<{ version: number; chunkIds: number[] }> {
     const t0 = performance.now();
     if (input.startSerial !== this.state.committed_serial + 1) throw new Error(`commit out of order: expected ${this.state.committed_serial + 1}, got ${input.startSerial}`);
     const cs = this.towerConfig.chunkSize;
@@ -149,7 +153,7 @@ export class WorldStore {
   }
 
   /** 테스트/복구용: DB 상태를 다시 읽는다 */
-  async refresh(): Promise<void> { this.state = (await this.db.query<WorldStateRow>("SELECT * FROM world_state WHERE world_id = $1", [this.cfg.worldId])).rows[0]; await this.loadCurrentChunk(); }
+  refresh(): Promise<void> { return this.serialized(async () => { this.state = (await this.db.query<WorldStateRow>("SELECT * FROM world_state WHERE world_id = $1", [this.cfg.worldId])).rows[0]; await this.loadCurrentChunk(); }); }
 
   // ---------------------------------------------------------------- manifest
   async manifest(baseUrl = ""): Promise<Manifest> {
@@ -171,7 +175,8 @@ export class WorldStore {
   }
 
   // ---------------------------------------------------------------- snapshot (§34, §35)
-  async snapshot(): Promise<number> {
+  snapshot(): Promise<number> { return this.serialized(() => this.snapshotLocked()); }
+  private async snapshotLocked(): Promise<number> {
     const surface = (await this.surfaceSlice()) ?? new Uint8Array(0);
     const lastCompleted = this.current ? this.currentId - 1 : this.currentId;
     const r = await this.db.query<{ snapshot_id: number }>(
