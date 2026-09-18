@@ -162,7 +162,8 @@ function result(): Record<string, unknown> {
     config: sim?.cfg ?? null,
     towerHeightM: (topY * unitCm) / 100,
     states: sim ? { active: sim.activeCount, surface: sim.surfaceCount, frozen: sim.frozen, leaks: sim.leakCount } : null,
-    fps,
+    // 샘플 창 기준 평균 FPS (500 ms 주기 카운터는 극저속에서 갱신되지 않으므로 쓰지 않는다)
+    fps: frames.length ? 1000 / avg((s) => s.frameMs) : fps,
     frameMsAvg: avg((s) => s.frameMs),
     frameMsP95: p95,
     frameMsP99: p99,

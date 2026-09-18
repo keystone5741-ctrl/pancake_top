@@ -113,7 +113,7 @@ headless 참고: 세 id 모두 lookup < 0.1 ms, chunk·instance 정확 (§11).
 | iPhone | 미측정 | | | | | |
 | Android | 미측정 | | | | | |
 
-계산: 전체 뷰 카메라는 탑 중간 높이에서 거리 d = 1.5 × max(2, 0.35 h) 에 있다. 10k units(1 km) 탑이면 d ≈ 5,300 units, 직경 1 unit 은 세로 800 px 화면(FOV 50°)에서 **약 0.16 px × DPR** 이다. 이 값을 `towerWidthPx` 로 JSON 에 기록한다. headless 에서 0.16 px (DPR 1) 로 확인 — 1 px 미만이므로 안티앨리어싱에 따라 희미한 선 또는 아예 보이지 않는다. Phase 1 에서 silhouette / distance exaggeration / atmosphere / height scale visualization 중 선택.
+계산: 전체 뷰 카메라는 탑 중간 높이에서 거리 d = 1.5 × max(2, 0.35 h) 에 있다. 10k units(1 km) 탑이면 d ≈ 5,300 units, 직경 1 unit 은 세로 800 px 화면(FOV 50°)에서 **약 0.11 px × DPR** 이다. 이 값을 `towerWidthPx` 로 JSON 에 기록한다. headless 에서 0.11 px (DPR 1) 로 확인 — 1 px 미만이므로 안티앨리어싱에 따라 희미한 선 또는 아예 보이지 않는다. Phase 1 에서 silhouette / distance exaggeration / atmosphere / height scale visualization 중 선택.
 
 ## 10. Drop animation (§10)
 
@@ -140,7 +140,19 @@ headless 참고 (§11): 4개 Drop 모두 서버 값에 수렴 (pos err 0, quat e
 
 `pnpm --filter physics-prototype suite:headless` 로 스위트 전체를 자동 등급 모드로 실행한 결과 (`raw/phase0.75-headless-swiftshader.json`):
 
-__HEADLESS_TABLE__
+12단계 모두 `done`, 총 831초. 모든 단계에서 크래시·중단 없음.
+
+| 단계 | FPS | p95 ms | draw / chunk | visible | 비고 |
+| --- | ---: | ---: | --- | ---: | --- |
+| synthetic-100k-standard | 0.1 | 1,507 | 10 / 10 | 25 | 소프트웨어 래스터 |
+| synthetic-100k-performance | 0.2 | 1,861 | 10 / 10 | 25 | |
+| synthetic-100k-ultra | 0.5 | 125 | 20 / 10 | 25 | 그림자 패스로 draw call 2배 |
+| find-100k | — | — | 10 / 10 | 51 | #1 → chunk 0 / inst 1, #54321 → 5 / 4321, #99999 → 9 / 9999. lookup ≤ 0.1 ms, 모두 correct. 카메라 이동은 0.1 fps 라 15초 안에 도착 못함(타임아웃으로 기록) |
+| fullview-100k | 5.7 | — | 11 / 10 | 75,460 | towerWidthPx **0.11** (DPR 1). 탑이 1 px 미만 |
+| drop-100 / 1k / 2k / 5k | 0.1~0.6 | 4,700~5,000 | 11 / 11 | 24~30 | 4종 모두 수렴: pos err 0, quat err ≤ 1.9e−7 |
+| synthetic-250k / 500k / 1M | — | 123~189 | 25 / 50 / 100 | 27~29 | 1M = 100 chunk, 로드 1.3 s, 크래시 없음 |
+
+SwiftShader 의 FPS 는 기기 성능과 무관하다. 확인된 것: 러너가 12단계를 reload 를 거치며 끝까지 돌고, 크래시 감지·결과 저장·JSON 내보내기가 동작하며, Find 인덱스와 Drop 수렴이 정확하다는 것이다. `fps` 값이 극저속에서 0 으로 남는 문제와 카메라 이동 타임아웃 표기는 이 실행 뒤 수정했다(샘플 평균 FPS, `flyTimedOut`).
 
 ## 12. Backend timing risk (§11)
 

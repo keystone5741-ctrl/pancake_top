@@ -97,12 +97,13 @@ async function runStep(api: AppApi, step: Step, auto: boolean): Promise<void> {
     for (const id of [1, 54321, 99999]) {
       const ok = api.findPancake(id);
       const t0 = performance.now();
-      while (api.flying() && performance.now() - t0 < 10000) await sleep(50);
+      while (api.flying() && performance.now() - t0 < 15000) await sleep(50);
+      const flyTimedOut = api.flying();
       api.resetSamples();
       banner(`Find #${id.toLocaleString()} — 근접 화면. 확대/회전해 보고 겹침이 보이는지 확인하세요. (${auto ? 3 : 8}초)`);
       await sleep(auto ? 3000 : 8000);
       const r = api.result();
-      finds.push({ ...(api.lastFind() ?? {}), found: ok, flyMs: api.lastFlyMs(), fpsDuringZoom: r.fps, frameMsP95: r.frameMsP95 });
+      finds.push({ ...(api.lastFind() ?? {}), found: ok, flyMs: flyTimedOut ? null : api.lastFlyMs(), flyTimedOut, fpsDuringZoom: r.fps, frameMsP95: r.frameMsP95 });
       if (!auto && id === 54321) { banner("지금 #54321 근접 화면을 스크린샷으로 남기세요 (5초)"); await sleep(5000); }
     }
     banner("");
@@ -208,7 +209,7 @@ function showResults(run: Run | null): void {
     <textarea id="jsonBox" readonly>${json.replace(/</g, "&lt;")}</textarea>`;
   $("dl").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([json], { type: "application/json" })); a.download = `phase0.75-${(run.device || "device").replace(/[^\w-]+/g, "_")}.json`; a.click(); };
   $("cp").onclick = () => { navigator.clipboard?.writeText(json); };
-  (window as unknown as { __RUN?: Run }).__RUN = run;
+  (window as unknown as { __RUN?: unknown }).__RUN = { ...run, summary: api_summary(run) };
   window.__READY = true;
 }
 
