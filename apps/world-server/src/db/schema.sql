@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS chunks (
   byte_length   INTEGER NOT NULL,
   finalized     BOOLEAN NOT NULL DEFAULT false,
   version       BIGINT NOT NULL,
+  data          BYTEA NOT NULL,                        -- authoritative chunk bytes (.chunk). 파일/CDN 은 여기서 파생
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -102,3 +103,6 @@ CREATE TABLE IF NOT EXISTS world_snapshots (
   current_chunk        INTEGER NOT NULL,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- 이전 스키마에서 올라오는 경우를 위한 추가 컬럼 (idempotent)
+ALTER TABLE chunks ADD COLUMN IF NOT EXISTS data BYTEA NOT NULL DEFAULT ''::bytea;
