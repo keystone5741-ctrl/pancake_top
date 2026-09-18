@@ -76,6 +76,22 @@ importers:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
 
+  packages/tower-engine:
+    dependencies:
+      pancake-core:
+        specifier: workspace:*
+        version: link:../pancake-core
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
 packages:
 
   '@dimforge/rapier3d-compat@0.12.0':
