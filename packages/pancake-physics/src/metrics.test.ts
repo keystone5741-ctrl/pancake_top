@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeStackingMetrics, quantile, tiltOf, type TowerSnapshot } from "./metrics";
-import { decodeTower, encodeTower, type TowerData } from "./towerFile";
+import { decodeTower, encodeTower } from "./towerFile";
+import type { TowerData } from "pancake-core";
 import { createRng } from "./rng";
 
 function column(n: number, opts: { gap?: number; tiltRad?: number; offset?: number } = {}): TowerData {

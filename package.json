@@ -5,6 +5,9 @@
   "scripts": {
     "proto": "pnpm --filter physics-prototype dev",
     "proto:build": "pnpm --filter physics-prototype build",
-    "bench": "pnpm --filter physics-prototype bench"
+    "bench": "pnpm --filter physics-prototype bench",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
   }
 }

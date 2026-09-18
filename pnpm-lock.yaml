@@ -13,6 +13,12 @@ importers:
       '@dimforge/rapier3d-compat':
         specifier: ^0.20.0
         version: 0.20.0
+      pancake-core:
+        specifier: workspace:*
+        version: link:../../packages/pancake-core
+      pancake-physics:
+        specifier: workspace:*
+        version: link:../../packages/pancake-physics
       three:
         specifier: ^0.186.0
         version: 0.186.0
@@ -37,6 +43,37 @@ importers:
         version: 7.3.6(@types/node@22.20.3)(tsx@4.23.13)
       vitest:
         specifier: ^3.2.7
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
+  packages/pancake-core:
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
+  packages/pancake-physics:
+    dependencies:
+      '@dimforge/rapier3d-compat':
+        specifier: ^0.20.0
+        version: 0.20.0
+      pancake-core:
+        specifier: workspace:*
+        version: link:../pancake-core
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
         version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
 
 packages:

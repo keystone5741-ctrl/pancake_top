@@ -7,7 +7,7 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { TowerSim, PRESETS, type PresetName } from "../src/sim";
+import { TowerSim, PRESETS, type PresetName } from "pancake-physics";
 
 const argv = process.argv.slice(2);
 const opt = (k: string, d: string): string => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };

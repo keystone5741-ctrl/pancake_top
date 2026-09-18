@@ -11,7 +11,7 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { TowerSim, DEFAULT_CONFIG, PRESETS, encodeTower, decodeTower, formatMetrics, type SimConfig, type PresetName, type StackingMetrics, type TowerData } from "../src/sim";
+import { TowerSim, DEFAULT_CONFIG, PRESETS, encodeTower, decodeTower, formatMetrics, type SimConfig, type PresetName, type StackingMetrics, type TowerData } from "pancake-physics";
 
 /** 1 unit = 1 m 프리셋: 실제 치수 + 실제 중력, Rapier lengthUnit 으로 허용오차 스케일링 */
 const METERS: Partial<SimConfig> = {

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { STATE_ACTIVE, STATE_FROZEN } from "../sim";
+import { STATE_ACTIVE, STATE_FROZEN } from "pancake-physics";
 
 /**
  * 렌더러가 읽는 것 = 서버가 결정한 값뿐 (플랜 §8, Phase 0.5 §7).

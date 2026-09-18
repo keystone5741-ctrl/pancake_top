@@ -1,7 +1,7 @@
 import type RAPIER_NS from "@dimforge/rapier3d-compat";
 import { createRng } from "./rng";
 import { computeStackingMetrics, type StackingMetrics } from "./metrics";
-import type { TowerData } from "./towerFile";
+import type { TowerData } from "pancake-core";
 import {
   DEFAULT_CONFIG,
   STATE_ACTIVE,

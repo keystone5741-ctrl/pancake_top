@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import RAPIER from "@dimforge/rapier3d-compat";
-import { TowerSim, PRESETS, DEFAULT_CONFIG, decodeTower, computeStackingMetrics, STATE_SURFACE, type SimConfig, type PresetName, type TowerData } from "./sim";
+import { TowerSim, PRESETS, DEFAULT_CONFIG, decodeTower, computeStackingMetrics, STATE_SURFACE, type SimConfig, type PresetName, type TowerData } from "pancake-physics";
 import { TowerRenderer, type Quality, type InstanceSource } from "./render/TowerRenderer";
-import { createRng } from "./sim/rng";
+import { createRng } from "pancake-physics";
 
 const t0 = performance.now();
 const params = new URLSearchParams(location.search);

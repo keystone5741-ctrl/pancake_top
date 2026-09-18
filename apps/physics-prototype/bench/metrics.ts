@@ -3,7 +3,7 @@
  *   tsx bench/metrics.ts public/towers/10k-natural.bin [...]
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { decodeTower, computeStackingMetrics, formatMetrics } from "../src/sim";
+import { decodeTower, computeStackingMetrics, formatMetrics } from "pancake-physics";
 const out: Record<string, unknown> = {};
 for (const f of process.argv.slice(2)) {
   const buf = readFileSync(f);

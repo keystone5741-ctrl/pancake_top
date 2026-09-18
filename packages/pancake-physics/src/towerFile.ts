@@ -8,15 +8,7 @@
 export const TOWER_MAGIC = 0x31544b50; // "PKT1" little-endian
 export const FLOATS_PER_PANCAKE = 9;
 
-export interface TowerData {
-  count: number;
-  diameter: number;
-  thickness: number;
-  unitCm: number;
-  px: Float32Array; py: Float32Array; pz: Float32Array;
-  qx: Float32Array; qy: Float32Array; qz: Float32Array; qw: Float32Array;
-  scale: Float32Array; tscale: Float32Array;
-}
+import type { TowerData } from "pancake-core";
 
 export function encodeTower(t: TowerData): ArrayBuffer {
   const header = 16;
