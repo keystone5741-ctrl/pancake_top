@@ -122,6 +122,10 @@ export class WorldStore {
     const heightMeters = worldUnitsToMeters(heightUnits, this.towerConfig.unitCm);
     const latestChunk = encoded[encoded.length - 1].id;
     await this.db.tx(async (c) => {
+      // 락 순서: purchase 트랜잭션(serial.ts)과 같이 world_state 행을 먼저 잡는다. 안 그러면
+      // purchase(world_state → drops) 와 commit(drops → world_state) 이 교착한다 (batch 벤치에서 실제 발생).
+      const cur = await c.query<{ version: number }>("SELECT version FROM world_state WHERE world_id = $1 FOR UPDATE", [this.cfg.worldId]);
+      if (!cur.rows.length || cur.rows[0].version !== this.state.version) throw new Error("world version conflict");
       for (const e of encoded) {
         await c.query(
           `INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds, updated_at)
