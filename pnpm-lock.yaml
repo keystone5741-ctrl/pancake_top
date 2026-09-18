@@ -45,11 +45,85 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
 
+  apps/world-prototype:
+    dependencies:
+      '@dimforge/rapier3d-compat':
+        specifier: ^0.20.0
+        version: 0.20.0
+      pancake-core:
+        specifier: workspace:*
+        version: link:../../packages/pancake-core
+      pancake-navigation:
+        specifier: workspace:*
+        version: link:../../packages/pancake-navigation
+      pancake-physics:
+        specifier: workspace:*
+        version: link:../../packages/pancake-physics
+      pancake-renderer:
+        specifier: workspace:*
+        version: link:../../packages/pancake-renderer
+      three:
+        specifier: ^0.186.0
+        version: 0.186.0
+      tower-engine:
+        specifier: workspace:*
+        version: link:../../packages/tower-engine
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      '@types/three':
+        specifier: ^0.186.0
+        version: 0.186.0
+      playwright-core:
+        specifier: ^1.50
+        version: 1.63.0
+      tsx:
+        specifier: ^4.20.0
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vite:
+        specifier: ^7.1.0
+        version: 7.3.6(@types/node@22.20.3)(tsx@4.23.13)
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
   packages/pancake-core:
     devDependencies:
       '@types/node':
         specifier: ^22
         version: 22.20.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
+  packages/pancake-navigation:
+    dependencies:
+      pancake-core:
+        specifier: workspace:*
+        version: link:../pancake-core
+      pancake-renderer:
+        specifier: workspace:*
+        version: link:../pancake-renderer
+      three:
+        specifier: ^0.186.0
+        version: 0.186.0
+      tower-engine:
+        specifier: workspace:*
+        version: link:../tower-engine
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      '@types/three':
+        specifier: ^0.186.0
+        version: 0.186.0
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
@@ -69,6 +143,31 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.20.3
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.3)(tsx@4.23.13)
+
+  packages/pancake-renderer:
+    dependencies:
+      pancake-core:
+        specifier: workspace:*
+        version: link:../pancake-core
+      three:
+        specifier: ^0.186.0
+        version: 0.186.0
+      tower-engine:
+        specifier: workspace:*
+        version: link:../tower-engine
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      '@types/three':
+        specifier: ^0.186.0
+        version: 0.186.0
       typescript:
         specifier: ^5.9.0
         version: 5.9.3
