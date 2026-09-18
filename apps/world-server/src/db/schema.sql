@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS chunks (
   finalized     BOOLEAN NOT NULL DEFAULT false,
   version       BIGINT NOT NULL,
   data          BYTEA NOT NULL,                        -- authoritative chunk bytes (.chunk). 파일/CDN 은 여기서 파생
+  bounds        JSONB,                                 -- {min:[x,y,z], max:[x,y,z]} (클라이언트 절두체/스트리밍 판정)
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -106,3 +107,4 @@ CREATE TABLE IF NOT EXISTS world_snapshots (
 
 -- 이전 스키마에서 올라오는 경우를 위한 추가 컬럼 (idempotent)
 ALTER TABLE chunks ADD COLUMN IF NOT EXISTS data BYTEA NOT NULL DEFAULT ''::bytea;
+ALTER TABLE chunks ADD COLUMN IF NOT EXISTS bounds JSONB;

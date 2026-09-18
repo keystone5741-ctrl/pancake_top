@@ -29,6 +29,8 @@ export interface ChunkHeader {
   /** 가장 낮은 팬케이크 바닥 / 가장 높은 팬케이크 윗면 (world units) */
   minHeight: number;
   maxHeight: number;
+  /** 서버가 준 chunk 바이너리의 SHA-256 (hex). 없으면 검증 생략. */
+  checksum?: string;
 }
 
 export interface TowerChunk extends ChunkHeader {

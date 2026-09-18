@@ -7,9 +7,9 @@ import type { Db, Queryable } from "../db/db";
 import type { ChunkStorage } from "./chunkStorage";
 
 export interface WorldStateRow { world_id: string; latest_global_serial: number; committed_serial: number; height_meters: number; height_units: number; latest_chunk_id: number; current_drop_id: string | null; version: number; updated_at: Date }
-export interface ChunkRow { chunk_id: number; start_serial: number; end_serial: number; count: number; min_height: number; max_height: number; checksum: string; byte_length: number; finalized: boolean; version: number }
+export interface ChunkRow { chunk_id: number; start_serial: number; end_serial: number; count: number; min_height: number; max_height: number; checksum: string; byte_length: number; finalized: boolean; version: number; bounds: { min: [number, number, number]; max: [number, number, number] } | null }
 
-export interface ManifestChunk { id: number; startSerial: number; endSerial: number; count: number; minHeight: number; maxHeight: number; checksum: string; finalized: boolean; url: string }
+export interface ManifestChunk { id: number; startSerial: number; endSerial: number; count: number; minHeight: number; maxHeight: number; bounds: { min: [number, number, number]; max: [number, number, number] }; checksum: string; byteLength: number; finalized: boolean; url: string }
 export interface Manifest { version: number; totalPancakes: number; allocatedPancakes: number; heightMeters: number; heightUnits: number; chunkSize: number; diameter: number; thickness: number; unitCm: number; chunks: ManifestChunk[] }
 
 export interface CommitInput { jobId: string; dropId: string; startSerial: number; endSerial: number; finalTransforms: TowerData; heightUnits: number; countries: Uint16Array }
@@ -124,10 +124,10 @@ export class WorldStore {
     await this.db.tx(async (c) => {
       for (const e of encoded) {
         await c.query(
-          `INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, updated_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, now())
-           ON CONFLICT (chunk_id) DO UPDATE SET start_serial = EXCLUDED.start_serial, end_serial = EXCLUDED.end_serial, count = EXCLUDED.count, min_height = EXCLUDED.min_height, max_height = EXCLUDED.max_height, checksum = EXCLUDED.checksum, byte_length = EXCLUDED.byte_length, finalized = EXCLUDED.finalized, version = EXCLUDED.version, data = EXCLUDED.data, updated_at = now()`,
-          [e.id, e.chunk.startSerial + 1, e.chunk.endSerial + 1, e.chunk.count, e.chunk.minHeight, e.chunk.maxHeight, e.checksum, e.bytes.byteLength, e.finalized, newVersion, Buffer.from(e.bytes)],
+          `INSERT INTO chunks (chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, data, bounds, updated_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, now())
+           ON CONFLICT (chunk_id) DO UPDATE SET start_serial = EXCLUDED.start_serial, end_serial = EXCLUDED.end_serial, count = EXCLUDED.count, min_height = EXCLUDED.min_height, max_height = EXCLUDED.max_height, checksum = EXCLUDED.checksum, byte_length = EXCLUDED.byte_length, finalized = EXCLUDED.finalized, version = EXCLUDED.version, data = EXCLUDED.data, bounds = EXCLUDED.bounds, updated_at = now()`,
+          [e.id, e.chunk.startSerial + 1, e.chunk.endSerial + 1, e.chunk.count, e.chunk.minHeight, e.chunk.maxHeight, e.checksum, e.bytes.byteLength, e.finalized, newVersion, Buffer.from(e.bytes), JSON.stringify(e.chunk.bounds)],
         );
       }
       await c.query("UPDATE pancakes SET committed_at = now() WHERE global_serial BETWEEN $1 AND $2", [input.startSerial, input.endSerial]);
@@ -150,12 +150,12 @@ export class WorldStore {
   // ---------------------------------------------------------------- manifest
   async manifest(baseUrl = ""): Promise<Manifest> {
     const t0 = performance.now();
-    const rows = (await this.db.query<ChunkRow>("SELECT chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version FROM chunks ORDER BY chunk_id")).rows;
+    const rows = (await this.db.query<ChunkRow>("SELECT chunk_id, start_serial, end_serial, count, min_height, max_height, checksum, byte_length, finalized, version, bounds FROM chunks ORDER BY chunk_id")).rows;
     const m: Manifest = {
       version: this.state.version, totalPancakes: this.state.committed_serial, allocatedPancakes: this.state.latest_global_serial,
       heightMeters: this.state.height_meters, heightUnits: this.state.height_units, chunkSize: this.towerConfig.chunkSize,
       diameter: this.towerConfig.diameter, thickness: this.towerConfig.thickness, unitCm: this.towerConfig.unitCm,
-      chunks: rows.map((r) => ({ id: r.chunk_id, startSerial: r.start_serial, endSerial: r.end_serial, count: r.count, minHeight: r.min_height, maxHeight: r.max_height, checksum: r.checksum, finalized: r.finalized, url: `${baseUrl}/api/world/chunks/${r.chunk_id}?c=${r.checksum.slice(0, 16)}` })),
+      chunks: rows.map((r) => ({ id: r.chunk_id, startSerial: r.start_serial, endSerial: r.end_serial, count: r.count, minHeight: r.min_height, maxHeight: r.max_height, bounds: r.bounds ?? { min: [-1, r.min_height, -1], max: [1, r.max_height, 1] }, checksum: r.checksum, byteLength: r.byte_length, finalized: r.finalized, url: `${baseUrl}/api/world/chunks/${r.chunk_id}?c=${r.checksum.slice(0, 16)}` })),
     };
     this.metrics.manifestMs = performance.now() - t0;
     return m;

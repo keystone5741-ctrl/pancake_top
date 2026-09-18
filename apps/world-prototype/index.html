@@ -45,9 +45,11 @@
       <div class="k">CHUNKS</div><div class="v" id="hudChunks">0 / 0</div>
       <div class="k">FPS</div><div class="v" id="hudFps">0</div>
       <div class="k">QUALITY</div><div class="v" id="hudQuality">standard</div>
+      <div id="hudNextRow" style="display:none"><div class="k">NEXT DROP</div><div class="v accent" id="hudNext">—</div></div>
     </div>
     <div id="controls">
       <h2>WORLD</h2>
+      <div class="row"><label>Source</label><select id="sourceSel"><option value="local">local synthetic</option><option value="server">server</option></select></div>
       <div class="row"><label>Quality</label><select id="quality"><option value="performance">performance</option><option value="standard" selected>standard</option><option value="ultra">ultra</option></select></div>
       <div class="row"><label>Pancakes (synthetic)</label><select id="count"><option>10000</option><option selected>100000</option><option>500000</option><option>1000000</option></select></div>
       <div class="row"><label>Far view</label><select id="far"><option value="pure">A pure</option><option value="silhouette" selected>B silhouette</option><option value="atmospheric">C atmospheric</option><option value="both">B+C</option></select></div>
