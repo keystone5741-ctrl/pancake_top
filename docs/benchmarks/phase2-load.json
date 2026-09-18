@@ -1,0 +1,125 @@
+{
+  "url": "http://localhost:8787",
+  "seconds": 10,
+  "startedAt": "2026-09-18T04:19:39.041Z",
+  "rates": [
+    {
+      "rate": 1,
+      "sent": 10,
+      "ok": 10,
+      "errors": 0,
+      "p50": 12.403518000000076,
+      "p95": 24.13882000000001,
+      "achievedRps": 1.109735608867003,
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 58,
+      "serialMax": 1013090,
+      "serialMin": 1013033,
+      "max": 24.3
+    },
+    {
+      "rate": 10,
+      "sent": 100,
+      "ok": 100,
+      "errors": 0,
+      "p50": 5.565266999999949,
+      "p95": 10.721011999999973,
+      "achievedRps": 10.095494503049634,
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 566,
+      "serialMax": 1013656,
+      "serialMin": 1013091,
+      "max": 20.9
+    },
+    {
+      "rate": 50,
+      "sent": 500,
+      "ok": 500,
+      "errors": 0,
+      "p50": 3.9383229999984906,
+      "p95": 5.644690000000992,
+      "achievedRps": 50.075179604749344,
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 2777,
+      "serialMax": 1016433,
+      "serialMin": 1013657,
+      "max": 12.5
+    },
+    {
+      "rate": 100,
+      "sent": 1000,
+      "ok": 1000,
+      "errors": 0,
+      "p50": 3.2587490000005346,
+      "p95": 6.7206590000023425,
+      "achievedRps": 100.0741244736789,
+      "duplicates": 0,
+      "gaps": 0,
+      "allocated": 5454,
+      "serialMax": 1021887,
+      "serialMin": 1016434,
+      "max": 24.8
+    }
+  ],
+  "idempotency": {
+    "same": true,
+    "replayed": true,
+    "statusA": 201,
+    "statusB": 200
+  },
+  "total": {
+    "duplicates": 0,
+    "gaps": 0,
+    "allocated": 8858,
+    "serverDelta": 8858,
+    "lost": 0,
+    "serialMax": 1021890,
+    "serialMin": 1013033
+  },
+  "burst": {
+    "dropId": "drop_20260918T042200Z",
+    "sent": 733,
+    "ok": 733,
+    "errors": 0,
+    "perDrop": {
+      "drop_20260918T042200Z": 359,
+      "drop_20260918T042400Z": 374
+    },
+    "lateIntoClosedDrop": 0,
+    "p95": 8.405021999991732,
+    "duplicates": 0,
+    "gaps": 0,
+    "allocated": 4021,
+    "closedDropStatus": "READY",
+    "closedDropCount": 12306,
+    "nextDrop": "drop_20260918T042400Z",
+    "serialMax": 1025911,
+    "serialMin": 1021891
+  },
+  "drain": {
+    "seconds": 1.008,
+    "pending": 0,
+    "committed": 1025911,
+    "allocated": 1025911,
+    "jobP50Ms": 44.37210600000253,
+    "jobP95Ms": 58.95640799999819,
+    "commitMsAvg": 10.504139866278862,
+    "chunkWriteMsAvg": 2.1397052023127374,
+    "workerCrashes": 0,
+    "jobRetries": 0
+  },
+  "consistency": {
+    "allocated": 1025911,
+    "committed": 1025911,
+    "allCommitted": true,
+    "jobs": [
+      {
+        "status": "DONE",
+        "n": 346
+      }
+    ]
+  }
+}

@@ -1,0 +1,459 @@
+{
+  "count": 100000,
+  "batch": 100,
+  "orders": 18001,
+  "purchaseSeconds": 36.930547583,
+  "totalSeconds": 138.67109314400003,
+  "drainAfterCutoffSeconds": 101.703900282,
+  "throughputPerSec": 721.1308264236235,
+  "drop": {
+    "status": "RELEASED",
+    "pancakeCount": 100000,
+    "heightBefore": 0,
+    "heightAfter": 1010.220134049654,
+    "startSerial": 1,
+    "endSerial": 100000
+  },
+  "world": {
+    "version": 1000,
+    "committed": 100000,
+    "heightMeters": 1010.220134049654,
+    "chunks": 10,
+    "finalizedChunks": 10,
+    "chunkBytes": 4001000
+  },
+  "jobs": {
+    "total": 1000,
+    "wallP50Ms": 122.33241600000474,
+    "wallP95Ms": 192.59220199999982,
+    "workerWallP50Ms": 97.56170900000143,
+    "ipcAndCommitOverheadMsAvg": 27.729672757999918,
+    "maxActiveMax": 70,
+    "statuses": [
+      {
+        "status": "DONE",
+        "n": 1000
+      }
+    ]
+  },
+  "shape": {
+    "penetrationP95Max": 0.09554076410281526,
+    "penetrationMaxMax": 0.18047600529614863,
+    "tiltMedianAvg": 2.172325251825184,
+    "leaks": 0
+  },
+  "store": {
+    "commitMsAvg": 22.950220654999704,
+    "commits": 1000,
+    "chunkWriteMsAvg": 2.061088897000205,
+    "chunkWrites": 1000,
+    "snapshots": 11,
+    "workerCrashes": 0,
+    "workerRestarts": 1,
+    "jobRetries": 0
+  },
+  "consistency": {
+    "committedRows": 100000,
+    "allocated": 100000,
+    "ok": true
+  },
+  "events": {
+    "drop.queueUpdated": 74,
+    "world.updated": 1000,
+    "drop.closing": 1,
+    "drop.ready": 1,
+    "drop.released": 1
+  },
+  "timeline": [
+    {
+      "t": 0.6651765159999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 1.039483858,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 1.593331302,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 2.071676406,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 2.5708485949999997,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 3.0603582140000003,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 3.5437271530000003,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 4.0379095750000005,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 4.58708927,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 5.057756723,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 5.593485564,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 6.053767917999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 6.6026284749999995,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 7.073277275,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 7.547261044999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 8.047708409999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 8.542915280999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 9.083552818,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 9.592152474999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 10.10986196,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 10.549607359,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 11.066704945,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 11.592066788,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 12.060528713,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 12.586376238,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 13.096536337,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 13.56353143,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 14.090209719,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 14.559171639,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 15.056975685,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 15.595312437999999,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 16.062215766,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 16.559283287,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 17.12652928,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 17.618223823,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 18.073751884,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 18.574908195,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 19.123162006999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 19.565683274999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 20.071216212,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 20.569810064000002,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 21.087932192,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 21.637173111,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 22.08481519,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 22.650258296,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 23.077363165999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 23.583624048999997,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 24.125537665,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 24.741356445999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 25.12112941,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 25.637881111,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 26.216844989000002,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 26.641456342,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 27.250357626,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 27.677022694999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 28.129233907,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 28.610228043,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 29.272953235,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 29.712323228000002,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 30.129125593,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 30.689338475,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 31.131963160999998,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 31.667750034,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 32.243794709,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 32.678685816,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 33.169751610000006,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 33.750046723000004,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 34.201628930000005,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 34.706519267000004,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 35.252145754000004,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 35.711980218,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 36.212470062,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 36.737241260000005,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 36.941997071,
+      "type": "drop.closing",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 37.152918353000004,
+      "type": "drop.queueUpdated",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 138.670391856,
+      "type": "drop.ready",
+      "detail": "drop_20260918T031000Z"
+    },
+    {
+      "t": 138.67295550100002,
+      "type": "drop.released",
+      "detail": "drop_20260918T031000Z"
+    }
+  ],
+  "memory": {
+    "rssMB": 157,
+    "dbSize": "168 MB",
+    "dbBytes": 176331799
+  }
+}

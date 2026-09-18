@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-09-18T04:18:02.533Z",
+  "results": {
+    "server": "http://localhost:8787",
+    "manifest": {
+      "version": 134,
+      "totalPancakes": 1008959,
+      "chunks": 101
+    },
+    "throttle-fast-4g": {
+      "profile": {
+        "download": 524288,
+        "upload": 393216,
+        "latency": 20
+      },
+      "pageReadyMs": 3339,
+      "findMs": 1148,
+      "chunkFetches": 2,
+      "bytesMB": 0.7631301879882812,
+      "httpChunkRequests": 2,
+      "avgChunkMs": 1010.916,
+      "selected": {
+        "id": 499999,
+        "chunkId": 49,
+        "instanceIndex": 9999
+      },
+      "statusTexts": [
+        "Loading pancake #500,000…"
+      ],
+      "sawLoading": true
+    },
+    "throttle-3g": {
+      "profile": {
+        "download": 209715.2,
+        "upload": 96000,
+        "latency": 150
+      },
+      "pageReadyMs": 7323,
+      "findMs": 4692,
+      "chunkFetches": 2,
+      "bytesMB": 0.7631301879882812,
+      "httpChunkRequests": 2,
+      "avgChunkMs": 4370.8345,
+      "selected": {
+        "id": 499999,
+        "chunkId": 49,
+        "instanceIndex": 9999
+      },
+      "statusTexts": [
+        "Loading pancake #500,000…"
+      ],
+      "sawLoading": true
+    },
+    "throttle-slow-3g": {
+      "profile": {
+        "download": 51200,
+        "upload": 51200,
+        "latency": 400
+      },
+      "pageReadyMs": 27119,
+      "findMs": 23435,
+      "chunkFetches": 3,
+      "bytesMB": 1.1049880981445312,
+      "httpChunkRequests": 3,
+      "avgChunkMs": 22172.209666666666,
+      "selected": {
+        "id": 499999,
+        "chunkId": 49,
+        "instanceIndex": 9999
+      },
+      "statusTexts": [
+        "Loading pancake #500,000…",
+        "drop_20260918T041800Z released — loading"
+      ],
+      "sawLoading": true
+    }
+  }
+}

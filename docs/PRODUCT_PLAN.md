@@ -970,15 +970,15 @@ PC / iPhone / Android 각 환경 성능 측정.
 
 이 테스트가 매우 중요하다. 설계 목표를 추측으로 결정하지 않고 실제 Benchmark로 결정한다.
 
-### Phase 2 — Tower Engine
+### Phase 2 — Server Drop Infrastructure & World Streaming
 
-Chunk / Streaming / LOD / Find Pancake / Height 구현.
+서버 쪽 Drop 인프라와 월드 스트리밍: `apps/world-server`(Node + TypeScript, node:http + ws + pg), 10분 UTC Drop 스케줄러(결정적 id), DropCoordinator 상태 기계(OPEN→SIMULATING→CLOSING→FINALIZING→READY→RELEASED, FAILED), 가짜 구매 + idempotencyKey, Global/Country serial 원자 할당, PostgreSQL 스키마, 자식 프로세스 시뮬레이션 worker 와 crash 복구(유한 재시도), 연속 시뮬레이션(batch 정책 벤치), chunk 영속성(DB authoritative, 파일 파생, manifest + sha256), 원자적 월드 커밋(version), snapshot, WebSocket 이벤트(snapshot / queueUpdated / closing / ready / released / updated), world-prototype `?source=server` 스트리밍(예측 fetch, 서브픽셀 chunk 는 실루엣), Rapier 패닉 최소 재현.
 
-**[v0.3]** Season 필드와 Fallen Field Chunk 구조를 이 단계에서 함께 잡는다.
+**상태 (2026-09-18): 구현 완료.** [`phase2/SERVER_ARCHITECTURE.md`](./phase2/SERVER_ARCHITECTURE.md), [`benchmarks/phase2-server.md`](./benchmarks/phase2-server.md). (원래 v0.2 의 "Phase 2 — Tower Engine: Chunk / Streaming / LOD / Find / Height" 는 Phase 1 에서 끝났고, Season/Fallen Field chunk 구조는 Phase 3b 로 미룬다.)
 
-### Phase 3 — Drop Engine
+### Phase 3 — Drop Engine (제품화)
 
-10-minute Queue / Physics Worker / Server Authoritative Transform / Freeze System / Realtime Synchronization 구현.
+Phase 2 인프라 위에 실제 결제 연결, 다중 인스턴스/CDN(S3·R2 ChunkStorage), 관리 API(FAILED job 복구), 이벤트 replay, Freeze System 튜닝, Realtime 동기화 마감.
 
 ### Phase 3b — Collapse Engine **[v0.3]**
 

@@ -16,12 +16,16 @@
 | [`docs/benchmarks/phase0.75-real-devices.md`](docs/benchmarks/phase0.75-real-devices.md) | Phase 0.75 실제 기기 성능 게이트: Device Suite 실행 절차, 결과 표(기기 측정 대기), 높이 지표 분리, Drop 애니메이션 |
 | [`docs/phase1/ARCHITECTURE.md`](docs/phase1/ARCHITECTURE.md) · [`TOWER_ENGINE.md`](docs/phase1/TOWER_ENGINE.md) · [`CONTINUOUS_DROP.md`](docs/phase1/CONTINUOUS_DROP.md) | Phase 1 World Engine 설계: 패키지 의존 방향, Chunk/인덱스/스트리밍, 연속 Drop 시뮬레이션과 발견한 버그 |
 | [`docs/benchmarks/phase1-world-engine.md`](docs/benchmarks/phase1-world-engine.md) | Phase 1 벤치마크: 100k/500k/1M 구조, 연속 시뮬레이션, 증분 vs 일괄, 물리 회귀표, 원거리 비교 |
+| [`docs/phase2/SERVER_ARCHITECTURE.md`](docs/phase2/SERVER_ARCHITECTURE.md) · [`DROP_PROTOCOL.md`](docs/phase2/DROP_PROTOCOL.md) · [`WORLD_PERSISTENCE.md`](docs/phase2/WORLD_PERSISTENCE.md) · [`RECOVERY.md`](docs/phase2/RECOVERY.md) · [`RAPIER_020_PANIC.md`](docs/phase2/RAPIER_020_PANIC.md) | Phase 2 서버: 경계/프로세스 모델, Drop 생명주기와 HTTP/WS 프로토콜, PostgreSQL 스키마·chunk 영속성·원자 커밋, 실패 지점별 복구, Rapier 패닉 최소 재현 |
+| [`docs/benchmarks/phase2-server.md`](docs/benchmarks/phase2-server.md) | Phase 2 벤치마크: 구매 부하(1~100 req/s, cutoff burst), 100k 연속 Drop, batch 정책, 1M 서버 월드 스트리밍, worker 크래시 복구 |
 
 ## 코드
 
 ```text
-apps/world-prototype/     Phase 1 — World Engine 검증 앱 (chunk 스트리밍, LOD, Find, Height Mode, Continuous Drop, Replay)
+apps/world-server/        Phase 2 — Drop 서버 (HTTP/WS, 10분 Drop 스케줄러, serial 할당, 시뮬레이션 worker 프로세스, PostgreSQL + chunk 저장소)
+apps/world-prototype/     Phase 1/2 — World Engine 검증 앱 (chunk 스트리밍, LOD, Find, Height Mode, Continuous Drop, Replay; ?source=server 로 서버 월드)
 apps/physics-prototype/   Phase 0/0.5/0.75 — 물리 프로토타입과 벤치마크 (재현용 유지)
+tests/rapier/             Rapier 0.20 removeRigidBody 패닉 최소 재현 (제품 코드 무관)
 packages/pancake-core/    공용 타입, 단위 변환, Height Milestone
 packages/pancake-physics/ 물리 코어(TowerSim), 계측, ContinuousDropSimulator
 packages/tower-engine/    Chunk, 인덱스, 높이, 가시성, 스트리밍, .chunk 바이너리
@@ -33,14 +37,20 @@ packages/pancake-navigation/ 카메라 모드, Find, 고도 내비게이터
 pnpm install
 pnpm world        # World prototype  http://localhost:5174  (?synthetic=100000 · ?synthetic=1000000 · ?find=54321 · ?drop=5000)
 pnpm proto        # Physics prototype http://localhost:5173
-pnpm typecheck && pnpm test && pnpm build
+pnpm typecheck && pnpm test && pnpm build   # test 는 로컬 PostgreSQL(pancake_test) 이 필요하다
+
+# Phase 2 서버 (PostgreSQL 16, role pancake/pancake, db pancake_world · pancake_test)
+pnpm --filter world-server migrate
+pnpm --filter world-server seed:synthetic -- --count 1000000   # 1M 합성 월드 (선택)
+pnpm --filter world-server dev                                  # http://localhost:8787  (/dev 디버그, /ws)
+pnpm world   # → http://localhost:5174/?source=server&server=http://localhost:8787
 ```
 
-아키텍처: [`docs/phase1/ARCHITECTURE.md`](docs/phase1/ARCHITECTURE.md)
+아키텍처: [`docs/phase1/ARCHITECTURE.md`](docs/phase1/ARCHITECTURE.md), [`docs/phase2/SERVER_ARCHITECTURE.md`](docs/phase2/SERVER_ARCHITECTURE.md)
 
 ## 현재 상태
 
-**Phase 0 / 0.5** 완료, **Phase 0.75** 도구 준비 완료(실제 기기 측정 대기), **Phase 1 — Core World Engine** 구현 완료 (플랜 §44). 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
+**Phase 0 / 0.5** 완료, **Phase 0.75** 도구 준비 완료(실제 기기 측정 대기), **Phase 1 — Core World Engine** 구현 완료, **Phase 2 — Server Drop Infrastructure & World Streaming** 구현 완료 (플랜 §44). 기기에서 `pnpm proto` 후 `/?suite=all` 을 실행해 결과 JSON 을 `docs/benchmarks/raw/` 에 저장하면 게이트를 판정한다. 그 다음이 Phase 1 — Million Pancake Rendering Test (실제 기기에서 100k~5M Instance 렌더링 측정). 각 작업은 §45의 방식대로 별도 Issue 단위로 진행한다.
 
 ## 개발 역할 (§46)
 

@@ -17,6 +17,7 @@ const outDir = resolve(opt("--out", "../../docs/benchmarks/phase2"));
 const serverUrl = opt("--server", "http://localhost:8787");
 const exe = opt("--chromium", process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome");
 const port = 4177;
+const only = opt("--only", ""); // "throttle" 이면 throttling 시나리오만
 mkdirSync(outDir, { recursive: true });
 const manifest = (await (await fetch(`${serverUrl}/api/world/manifest`)).json()) as { version: number; totalPancakes: number; chunks: { byteLength: number }[]; heightMeters: number };
 console.log(`server world v${manifest.version}: ${manifest.totalPancakes} pancakes, ${manifest.chunks.length} chunks, ${(manifest.chunks.reduce((a, c) => a + c.byteLength, 0) / 1048576).toFixed(1)} MB, height ${manifest.heightMeters.toFixed(1)} m`);
@@ -54,10 +55,10 @@ try {
     results[name] = r;
     return r;
   };
-  await run("server-top", "view=top&auto=1&settle=8000");
-  for (const id of [1, 54321, 999999]) await run(`server-find-${id}`, `find=${id}&auto=1&settle=8000`);
+  if (!only) await run("server-top", "view=top&auto=1&settle=8000");
+  if (!only) for (const id of [1, 54321, 999999]) await run(`server-find-${id}`, `find=${id}&auto=1&settle=8000`);
   // "Loading pancake…" 상태 + 필요한 chunk 만: 페이지를 열고 직접 find 를 호출해 상태 텍스트를 관찰한다
-  {
+  if (!only) {
     const { page, requests } = await open("view=top&shot=1&settle=1000");
     await page.waitForFunction(() => Boolean(window.__READY), null, { timeout: 60_000 });
     const before = (await snap(page)).remote.chunkFetches as number;
@@ -77,16 +78,20 @@ try {
     const { page, requests } = await open("view=top&shot=1&settle=500", prof);
     await page.waitForFunction(() => Boolean(window.__READY), null, { timeout: 120_000 });
     const tFind = Date.now();
-    await page.evaluate(() => window.__find!(500000));
+    const finding = page.evaluate(() => window.__find!(500000));
+    const texts: string[] = [];
+    let done = false; void finding.then(() => { done = true; });
+    while (!done) { const t = await page.$eval("#dropStatus", (el) => el.textContent ?? ""); if (!texts.length || texts[texts.length - 1] !== t) texts.push(t); await new Promise((r) => setTimeout(r, 50)); }
     const s = await snap(page);
-    const r = { profile: PROFILES[prof], pageReadyMs: tFind - t0, findMs: Date.now() - tFind, chunkFetches: s.remote.chunkFetches, bytesMB: s.remote.bytesDownloaded / 1048576, httpChunkRequests: requests.length, avgChunkMs: requests.length ? requests.reduce((a, x) => a + x.ms, 0) / requests.length : 0, selected: s.selected };
-    console.log(`  throttle ${prof}: page ready ${r.pageReadyMs} ms, find #500000 ${r.findMs} ms (${r.chunkFetches} chunks, ${r.bytesMB.toFixed(2)} MB, avg chunk ${r.avgChunkMs.toFixed(0)} ms)`);
+    const r = { profile: PROFILES[prof], pageReadyMs: tFind - t0, findMs: Date.now() - tFind, chunkFetches: s.remote.chunkFetches, bytesMB: s.remote.bytesDownloaded / 1048576, httpChunkRequests: requests.length, avgChunkMs: requests.length ? requests.reduce((a, x) => a + x.ms, 0) / requests.length : 0, selected: s.selected, statusTexts: texts, sawLoading: texts.some((t) => t.startsWith("Loading pancake")) };
+    console.log(`  throttle ${prof}: page ready ${r.pageReadyMs} ms, find #500000 ${r.findMs} ms (${r.chunkFetches} chunks, ${r.bytesMB.toFixed(2)} MB, avg chunk ${r.avgChunkMs.toFixed(0)} ms) status ${JSON.stringify(texts)}`);
     results[`throttle-${prof}`] = r;
     await page.close();
   }
   // Full Tower 는 모든 chunk 가 보이므로 100 개를 다 받는다 (SwiftShader 에서는 1M 인스턴스 렌더가 매우 느려 마지막에 둔다)
-  await run("server-full", "view=full&auto=1&settle=4000");
+  if (!only) await run("server-full", "view=full&auto=1&settle=4000");
   await browser.close();
-  writeFileSync(resolve(outDir, "phase2-streaming.json"), JSON.stringify({ generatedAt: new Date().toISOString(), results }, null, 2));
-  console.log(`wrote ${resolve(outDir, "phase2-streaming.json")}`);
+  const file = resolve(outDir, only ? `phase2-streaming-${only}.json` : "phase2-streaming.json");
+  writeFileSync(file, JSON.stringify({ generatedAt: new Date().toISOString(), results }, null, 2));
+  console.log(`wrote ${file}`);
 } finally { preview.kill(); }

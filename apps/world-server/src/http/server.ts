@@ -52,7 +52,9 @@ export function createHttpServer(app: WorldApp): { server: Server; wss: WebSocke
     add("GET", "/api/dev/status", async (_req, res) => {
       const cur = await app.currentDrop();
       const jobs = (await app.db.query<{ status: string; n: number }>("SELECT status, COUNT(*)::int AS n FROM simulation_jobs GROUP BY status")).rows;
-      json(res, 200, { world: app.store.worldState, currentDrop: cur, nextDrop: app.scheduler.after(app.scheduler.slotFor(cur.scheduled_at)), pending: app.pendingPancakes, worker: { alive: app.worker.alive, ready: app.worker.ready, crashes: app.worker.crashes, restarts: app.worker.restarts }, jobs, metrics: app.metricsSnapshot(), serverTime: app.clock().toISOString() });
+      // world 는 메모리 상태(커밋 시점 기준). live 는 DB 의 현재 카운터 (구매 직후에도 정확)
+      const live = (await app.db.query<{ latest_global_serial: number; committed_serial: number; version: number }>("SELECT latest_global_serial, committed_serial, version FROM world_state WHERE world_id = $1", [app.cfg.worldId])).rows[0];
+      json(res, 200, { world: app.store.worldState, live, currentDrop: cur, nextDrop: app.scheduler.after(app.scheduler.slotFor(cur.scheduled_at)), pending: app.pendingPancakes, worker: { alive: app.worker.alive, ready: app.worker.ready, crashes: app.worker.crashes, restarts: app.worker.restarts }, jobs, metrics: app.metricsSnapshot(), serverTime: app.clock().toISOString() });
     });
     add("GET", "/api/dev/metrics", async (_req, res) => { json(res, 200, app.metricsSnapshot()); });
     add("POST", "/api/dev/tick", async (req, res) => { const b = await readJson(req); await app.tick(b.now ? new Date(String(b.now)) : undefined); json(res, 200, { ok: true }); });
